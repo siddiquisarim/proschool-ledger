@@ -23,6 +23,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.reports': 'Reports',
     'nav.settings': 'Settings',
     'nav.idCards': 'ID Cards',
+    'nav.users': 'User Management',
     'role.admin': 'Administrator',
     'role.cashier': 'Cashier',
     'role.supervisor': 'Supervisor',
@@ -71,6 +72,8 @@ const translations: Record<Language, Record<string, string>> = {
     'attendance.absent': 'Absent',
     'attendance.late': 'Late',
     'attendance.excused': 'Excused',
+    'login': 'Sign In',
+    'users': 'User Management',
   },
   ar: {
     'app.title': 'مدير المدرسة المحترف',
@@ -83,6 +86,7 @@ const translations: Record<Language, Record<string, string>> = {
     'nav.reports': 'التقارير',
     'nav.settings': 'الإعدادات',
     'nav.idCards': 'البطاقات الشخصية',
+    'nav.users': 'إدارة المستخدمين',
     'role.admin': 'المدير',
     'role.cashier': 'أمين الصندوق',
     'role.supervisor': 'المشرف',
@@ -131,20 +135,16 @@ const translations: Record<Language, Record<string, string>> = {
     'attendance.absent': 'غائب',
     'attendance.late': 'متأخر',
     'attendance.excused': 'معذور',
+    'login': 'تسجيل الدخول',
+    'users': 'إدارة المستخدمين',
   },
 };
 
-const defaultUser: User = {
-  id: '1',
-  name: 'Admin User',
-  email: 'admin@proschool.com',
-  role: 'admin',
-};
-
+// No default user - require login
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [currentUser, setCurrentUser] = useState<User | null>(defaultUser);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [language, setLanguageState] = useState<Language>('en');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 

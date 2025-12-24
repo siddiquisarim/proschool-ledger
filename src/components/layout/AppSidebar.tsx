@@ -1,5 +1,5 @@
 import { useApp } from '@/contexts/AppContext';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
@@ -15,6 +15,7 @@ import {
   ChevronRight,
   LogOut,
   Building2,
+  UserCog,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -36,15 +37,22 @@ const navItems: NavItem[] = [
   { key: 'nav.verification', icon: CheckSquare, path: '/verification', roles: ['admin', 'supervisor', 'accountant'] },
   { key: 'nav.reports', icon: BarChart3, path: '/reports', roles: ['admin', 'supervisor', 'accountant'] },
   { key: 'nav.idCards', icon: IdCard, path: '/id-cards', roles: ['admin', 'cashier'] },
+  { key: 'nav.users', icon: UserCog, path: '/users', roles: ['admin'] },
   { key: 'nav.settings', icon: Settings, path: '/settings', roles: ['admin'] },
 ];
 
 export function AppSidebar() {
-  const { currentUser, sidebarCollapsed, toggleSidebar, t, isRTL } = useApp();
+  const { currentUser, sidebarCollapsed, toggleSidebar, t, isRTL, setCurrentUser } = useApp();
+  const navigate = useNavigate();
 
   const filteredNavItems = navItems.filter(
     item => currentUser && item.roles.includes(currentUser.role)
   );
+
+  const handleSignOut = () => {
+    setCurrentUser(null);
+    navigate('/login');
+  };
 
   return (
     <aside
@@ -109,13 +117,14 @@ export function AppSidebar() {
         <Button
           variant="ghost"
           size="sm"
+          onClick={handleSignOut}
           className={cn(
             "w-full text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent/50",
             sidebarCollapsed && "px-2"
           )}
         >
           <LogOut className="w-4 h-4" />
-          {!sidebarCollapsed && <span>Sign Out</span>}
+          {!sidebarCollapsed && <span className="ml-2">Sign Out</span>}
         </Button>
       </div>
 
