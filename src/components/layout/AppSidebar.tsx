@@ -16,6 +16,11 @@ import {
   LogOut,
   Building2,
   UserCog,
+  Ticket,
+  Briefcase,
+  Calendar,
+  Clock,
+  DollarSign,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -26,6 +31,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   path: string;
   roles: UserRole[];
+  section?: string;
 }
 
 const navItems: NavItem[] = [
@@ -37,6 +43,11 @@ const navItems: NavItem[] = [
   { key: 'nav.verification', icon: CheckSquare, path: '/verification', roles: ['admin', 'supervisor', 'accountant'] },
   { key: 'nav.reports', icon: BarChart3, path: '/reports', roles: ['admin', 'supervisor', 'accountant'] },
   { key: 'nav.idCards', icon: IdCard, path: '/id-cards', roles: ['admin', 'cashier'] },
+  { key: 'nav.tickets', icon: Ticket, path: '/tickets', roles: ['admin', 'cashier', 'supervisor', 'accountant'], section: 'support' },
+  { key: 'nav.hrEmployees', icon: Briefcase, path: '/hr/employees', roles: ['admin'], section: 'hr' },
+  { key: 'nav.hrLeave', icon: Calendar, path: '/hr/leave', roles: ['admin', 'supervisor'], section: 'hr' },
+  { key: 'nav.hrOvertime', icon: Clock, path: '/hr/overtime', roles: ['admin', 'supervisor', 'accountant'], section: 'hr' },
+  { key: 'nav.hrPayroll', icon: DollarSign, path: '/hr/payroll', roles: ['admin', 'accountant'], section: 'hr' },
   { key: 'nav.users', icon: UserCog, path: '/users', roles: ['admin'] },
   { key: 'nav.settings', icon: Settings, path: '/settings', roles: ['admin'] },
 ];

@@ -109,6 +109,123 @@ export interface SchoolSettings {
   logo?: string;
 }
 
+// Ticket Management Types
+export type TicketStatus = 'pending' | 'approved' | 'solved' | 'closed';
+export type TicketCategory = 'technical' | 'financial' | 'administrative' | 'academic' | 'maintenance' | 'other';
+
+export interface TicketHistory {
+  id: string;
+  ticketId: string;
+  action: string;
+  fromStatus?: TicketStatus;
+  toStatus?: TicketStatus;
+  userId: string;
+  userName: string;
+  notes?: string;
+  timestamp: string;
+}
+
+export interface Ticket {
+  id: string;
+  title: string;
+  description: string;
+  category: TicketCategory;
+  status: TicketStatus;
+  assignedToUserId?: string;
+  assignedToGroupId?: string;
+  createdBy: string;
+  createdByName: string;
+  createdAt: string;
+  updatedAt: string;
+  resolvedReason?: string;
+  history: TicketHistory[];
+}
+
+export interface UserGroup {
+  id: string;
+  name: string;
+  description?: string;
+  memberIds: string[];
+}
+
+// HR Management Types
+export type EmploymentType = 'full_time' | 'part_time' | 'contract' | 'temporary';
+export type LeaveStatus = 'pending' | 'approved' | 'rejected';
+export type OvertimeStatus = 'pending' | 'supervisor_confirmed' | 'approved' | 'rejected';
+
+export interface Employee {
+  id: string;
+  userId: string;
+  employeeCode: string;
+  cpr: string;
+  department: string;
+  occupation: string;
+  employmentType: EmploymentType;
+  workingHours: number;
+  yearlyLeaveBalance: number;
+  usedLeave: number;
+  basicSalary: number;
+  mobileAllowance: number;
+  transportAllowance: number;
+  joinDate: string;
+  status: 'active' | 'inactive';
+}
+
+export interface LeaveRequest {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  startDate: string;
+  endDate: string;
+  reason: string;
+  status: LeaveStatus;
+  daysCount: number;
+  approvedBy?: string;
+  rejectionReason?: string;
+  createdAt: string;
+}
+
+export interface OvertimeRequest {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  date: string;
+  hours: number;
+  reason: string;
+  status: OvertimeStatus;
+  supervisorConfirmedBy?: string;
+  approvedBy?: string;
+  rejectionReason?: string;
+  addedToPayroll: boolean;
+  payrollMonth?: string;
+  createdAt: string;
+}
+
+export interface PayrollEntry {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  month: string;
+  year: number;
+  basicSalary: number;
+  mobileAllowance: number;
+  transportAllowance: number;
+  overtimeAmount: number;
+  variableBenefits: { name: string; amount: number }[];
+  variableDeductions: { name: string; amount: number }[];
+  totalBenefits: number;
+  totalDeductions: number;
+  netSalary: number;
+  status: 'draft' | 'processed' | 'paid';
+  processedBy?: string;
+  processedAt?: string;
+}
+
+export interface PayslipPermission {
+  employeeId: string;
+  canViewPayslip: boolean;
+}
+
 export type Language = 'en' | 'ar';
 
 export interface AppState {
