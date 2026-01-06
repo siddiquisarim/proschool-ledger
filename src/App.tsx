@@ -13,6 +13,11 @@ import { VerificationPage } from "@/pages/Verification";
 import { ReportsPage } from "@/pages/Reports";
 import { SettingsPage } from "@/pages/Settings";
 import { IDCardsPage } from "@/pages/IDCards";
+import { TicketsPage } from "@/pages/Tickets";
+import { HREmployeesPage } from "@/pages/HREmployees";
+import { HRLeavePage } from "@/pages/HRLeave";
+import { HROvertimePage } from "@/pages/HROvertime";
+import { HRPayrollPage } from "@/pages/HRPayroll";
 import Login from "@/pages/Login";
 import UserManagement from "@/pages/UserManagement";
 import NotFound from "./pages/NotFound";
@@ -37,6 +42,11 @@ function ProtectedRoutes() {
         <Route path="/reports" element={<ReportsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/id-cards" element={<IDCardsPage />} />
+        <Route path="/tickets" element={<TicketsPage />} />
+        <Route path="/hr/employees" element={<HREmployeesPage />} />
+        <Route path="/hr/leave" element={<HRLeavePage />} />
+        <Route path="/hr/overtime" element={<HROvertimePage />} />
+        <Route path="/hr/payroll" element={<HRPayrollPage />} />
         <Route path="/users" element={<UserManagement />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

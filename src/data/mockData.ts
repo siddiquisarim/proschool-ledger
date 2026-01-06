@@ -1,4 +1,4 @@
-import { Student, FeeStructure, Payment, DailyClosure, AttendanceRecord, Teacher, SchoolSettings } from '@/types';
+import { Student, FeeStructure, Payment, DailyClosure, AttendanceRecord, Teacher, SchoolSettings, Ticket, UserGroup, Employee, LeaveRequest, OvertimeRequest, PayrollEntry } from '@/types';
 
 export const mockStudents: Student[] = [
   {
@@ -236,3 +236,272 @@ export const mockSettings: SchoolSettings = {
   monthlyDueDay: 10,
   prepayThreshold: 20,
 };
+
+// User Groups for Ticket Assignment
+export const mockUserGroups: UserGroup[] = [
+  { id: 'g1', name: 'IT Support', description: 'Technical support team', memberIds: ['1', '2'] },
+  { id: 'g2', name: 'Finance Team', description: 'Finance and accounting', memberIds: ['4'] },
+  { id: 'g3', name: 'Academic Affairs', description: 'Academic coordination', memberIds: ['3'] },
+  { id: 'g4', name: 'Maintenance', description: 'Facilities maintenance team', memberIds: ['1'] },
+];
+
+// Ticket Management Mock Data
+export const mockTickets: Ticket[] = [
+  {
+    id: 't1',
+    title: 'Projector not working in Room 101',
+    description: 'The projector in classroom 101 is not displaying anything. It powers on but shows no signal.',
+    category: 'technical',
+    status: 'pending',
+    assignedToGroupId: 'g1',
+    createdBy: '3',
+    createdByName: 'Supervisor User',
+    createdAt: '2024-12-20T09:00:00Z',
+    updatedAt: '2024-12-20T09:00:00Z',
+    history: [
+      { id: 'h1', ticketId: 't1', action: 'Created', userId: '3', userName: 'Supervisor User', timestamp: '2024-12-20T09:00:00Z' }
+    ]
+  },
+  {
+    id: 't2',
+    title: 'Fee refund request for withdrawn student',
+    description: 'Parent requesting partial refund for student ID STU-2024-010 who withdrew mid-semester.',
+    category: 'financial',
+    status: 'approved',
+    assignedToUserId: '4',
+    createdBy: '2',
+    createdByName: 'Cashier User',
+    createdAt: '2024-12-18T14:30:00Z',
+    updatedAt: '2024-12-19T10:00:00Z',
+    history: [
+      { id: 'h2', ticketId: 't2', action: 'Created', userId: '2', userName: 'Cashier User', timestamp: '2024-12-18T14:30:00Z' },
+      { id: 'h3', ticketId: 't2', action: 'Status Changed', fromStatus: 'pending', toStatus: 'approved', userId: '1', userName: 'Admin User', notes: 'Approved for 50% refund', timestamp: '2024-12-19T10:00:00Z' }
+    ]
+  },
+  {
+    id: 't3',
+    title: 'Air conditioning repair needed',
+    description: 'AC unit in staff room making loud noise and not cooling properly.',
+    category: 'maintenance',
+    status: 'solved',
+    assignedToGroupId: 'g4',
+    createdBy: '1',
+    createdByName: 'Admin User',
+    createdAt: '2024-12-15T08:00:00Z',
+    updatedAt: '2024-12-17T16:00:00Z',
+    resolvedReason: 'Replaced faulty compressor. AC now working normally.',
+    history: [
+      { id: 'h4', ticketId: 't3', action: 'Created', userId: '1', userName: 'Admin User', timestamp: '2024-12-15T08:00:00Z' },
+      { id: 'h5', ticketId: 't3', action: 'Status Changed', fromStatus: 'pending', toStatus: 'approved', userId: '1', userName: 'Admin User', timestamp: '2024-12-15T10:00:00Z' },
+      { id: 'h6', ticketId: 't3', action: 'Status Changed', fromStatus: 'approved', toStatus: 'solved', userId: '1', userName: 'Maintenance Tech', notes: 'Replaced faulty compressor', timestamp: '2024-12-17T16:00:00Z' }
+    ]
+  },
+];
+
+// HR Management Mock Data
+export const mockEmployees: Employee[] = [
+  {
+    id: 'e1',
+    userId: '1',
+    employeeCode: 'EMP-001',
+    cpr: '850101234',
+    department: 'Administration',
+    occupation: 'School Administrator',
+    employmentType: 'full_time',
+    workingHours: 40,
+    yearlyLeaveBalance: 30,
+    usedLeave: 5,
+    basicSalary: 3500,
+    mobileAllowance: 50,
+    transportAllowance: 100,
+    joinDate: '2020-01-15',
+    status: 'active'
+  },
+  {
+    id: 'e2',
+    userId: '2',
+    employeeCode: 'EMP-002',
+    cpr: '900515678',
+    department: 'Finance',
+    occupation: 'Cashier',
+    employmentType: 'full_time',
+    workingHours: 40,
+    yearlyLeaveBalance: 25,
+    usedLeave: 8,
+    basicSalary: 2000,
+    mobileAllowance: 30,
+    transportAllowance: 80,
+    joinDate: '2021-06-01',
+    status: 'active'
+  },
+  {
+    id: 'e3',
+    userId: '3',
+    employeeCode: 'EMP-003',
+    cpr: '880720345',
+    department: 'Academic',
+    occupation: 'Supervisor',
+    employmentType: 'full_time',
+    workingHours: 40,
+    yearlyLeaveBalance: 28,
+    usedLeave: 10,
+    basicSalary: 2800,
+    mobileAllowance: 40,
+    transportAllowance: 90,
+    joinDate: '2019-09-01',
+    status: 'active'
+  },
+  {
+    id: 'e4',
+    userId: '4',
+    employeeCode: 'EMP-004',
+    cpr: '920310456',
+    department: 'Finance',
+    occupation: 'Accountant',
+    employmentType: 'full_time',
+    workingHours: 40,
+    yearlyLeaveBalance: 25,
+    usedLeave: 3,
+    basicSalary: 3000,
+    mobileAllowance: 40,
+    transportAllowance: 100,
+    joinDate: '2022-02-15',
+    status: 'active'
+  },
+];
+
+export const mockLeaveRequests: LeaveRequest[] = [
+  {
+    id: 'l1',
+    employeeId: 'e2',
+    employeeName: 'Cashier User',
+    startDate: '2024-12-25',
+    endDate: '2024-12-27',
+    reason: 'Family vacation',
+    status: 'pending',
+    daysCount: 3,
+    createdAt: '2024-12-20T10:00:00Z'
+  },
+  {
+    id: 'l2',
+    employeeId: 'e3',
+    employeeName: 'Supervisor User',
+    startDate: '2024-12-10',
+    endDate: '2024-12-12',
+    reason: 'Medical appointment',
+    status: 'approved',
+    daysCount: 3,
+    approvedBy: 'Admin User',
+    createdAt: '2024-12-05T09:00:00Z'
+  },
+  {
+    id: 'l3',
+    employeeId: 'e1',
+    employeeName: 'Admin User',
+    startDate: '2024-11-20',
+    endDate: '2024-11-21',
+    reason: 'Personal matters',
+    status: 'rejected',
+    daysCount: 2,
+    rejectionReason: 'Critical deadline during requested period',
+    createdAt: '2024-11-15T14:00:00Z'
+  },
+];
+
+export const mockOvertimeRequests: OvertimeRequest[] = [
+  {
+    id: 'o1',
+    employeeId: 'e2',
+    employeeName: 'Cashier User',
+    date: '2024-12-20',
+    hours: 3,
+    reason: 'Month-end closing activities',
+    status: 'pending',
+    addedToPayroll: false,
+    createdAt: '2024-12-20T18:00:00Z'
+  },
+  {
+    id: 'o2',
+    employeeId: 'e3',
+    employeeName: 'Supervisor User',
+    date: '2024-12-15',
+    hours: 4,
+    reason: 'Parent-teacher meeting preparation',
+    status: 'supervisor_confirmed',
+    supervisorConfirmedBy: 'Supervisor User',
+    addedToPayroll: false,
+    createdAt: '2024-12-15T19:00:00Z'
+  },
+  {
+    id: 'o3',
+    employeeId: 'e4',
+    employeeName: 'Accountant User',
+    date: '2024-12-10',
+    hours: 2,
+    reason: 'Audit preparation',
+    status: 'approved',
+    supervisorConfirmedBy: 'Supervisor User',
+    approvedBy: 'Admin User',
+    addedToPayroll: true,
+    payrollMonth: 'December 2024',
+    createdAt: '2024-12-10T17:00:00Z'
+  },
+];
+
+export const mockPayrollEntries: PayrollEntry[] = [
+  {
+    id: 'p1',
+    employeeId: 'e1',
+    employeeName: 'Admin User',
+    month: 'November',
+    year: 2024,
+    basicSalary: 3500,
+    mobileAllowance: 50,
+    transportAllowance: 100,
+    overtimeAmount: 0,
+    variableBenefits: [{ name: 'Performance Bonus', amount: 200 }],
+    variableDeductions: [{ name: 'Social Insurance', amount: 70 }],
+    totalBenefits: 3850,
+    totalDeductions: 70,
+    netSalary: 3780,
+    status: 'paid',
+    processedBy: 'Accountant User',
+    processedAt: '2024-11-28T10:00:00Z'
+  },
+  {
+    id: 'p2',
+    employeeId: 'e2',
+    employeeName: 'Cashier User',
+    month: 'November',
+    year: 2024,
+    basicSalary: 2000,
+    mobileAllowance: 30,
+    transportAllowance: 80,
+    overtimeAmount: 75,
+    variableBenefits: [],
+    variableDeductions: [{ name: 'Social Insurance', amount: 40 }],
+    totalBenefits: 2185,
+    totalDeductions: 40,
+    netSalary: 2145,
+    status: 'paid',
+    processedBy: 'Accountant User',
+    processedAt: '2024-11-28T10:00:00Z'
+  },
+  {
+    id: 'p3',
+    employeeId: 'e4',
+    employeeName: 'Accountant User',
+    month: 'December',
+    year: 2024,
+    basicSalary: 3000,
+    mobileAllowance: 40,
+    transportAllowance: 100,
+    overtimeAmount: 75,
+    variableBenefits: [],
+    variableDeductions: [{ name: 'Social Insurance', amount: 60 }],
+    totalBenefits: 3215,
+    totalDeductions: 60,
+    netSalary: 3155,
+    status: 'draft',
+  },
+];
