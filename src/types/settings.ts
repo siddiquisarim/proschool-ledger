@@ -7,11 +7,16 @@ export interface Level {
   isActive: boolean;
 }
 
+export type ClassStatus = 'read_write' | 'read' | 'closed';
+
 export interface AcademicClass {
   id: string;
   name: string;
   levelId: string;
   capacity: number;
+  maxStudents: number;
+  enrolledStudents: number;
+  status: ClassStatus; // read_write: can enroll, read: reports only, closed: completely closed
   isActive: boolean;
 }
 
@@ -30,6 +35,15 @@ export interface AcademicYear {
   startDate: string;
   endDate: string;
   isCurrent: boolean;
+}
+
+export interface AcademicYearEnrollment {
+  academicYearId: string;
+  classId: string;
+  enrolledCount: number;
+  leftCount: number;
+  graduatedCount: number;
+  transferredCount: number;
 }
 
 export interface FeeDiscount {
@@ -80,6 +94,7 @@ export interface StudentEnrollment {
   classId: string;
   enrollmentDate: string;
   status: 'active' | 'withdrawn' | 'graduated' | 'transferred';
+  allowReRegistration: boolean; // Admin approval for re-registration
 }
 
 export interface FeePaymentRecord {
@@ -95,4 +110,15 @@ export interface FeePaymentRecord {
   dueDate: string;
   paidDate?: string;
   month?: string; // For monthly fees
+}
+
+export interface CustomFee {
+  id: string;
+  studentId: string;
+  name: string;
+  amount: number;
+  description?: string;
+  status: 'paid' | 'unpaid';
+  createdAt: string;
+  paidDate?: string;
 }
