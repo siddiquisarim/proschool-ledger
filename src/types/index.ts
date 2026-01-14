@@ -16,17 +16,22 @@ export interface Student {
   arabicName?: string;
   dateOfBirth: string;
   gender: 'male' | 'female';
+  cprNumber?: string;
   grade: string;
   section: string;
+  levelId?: string;
   parentName: string;
   parentPhone: string;
   parentEmail?: string;
   address?: string;
+  returnAddress?: string;
+  transportLineId?: string;
   enrollmentDate: string;
   status: 'active' | 'inactive' | 'graduated' | 'transferred';
   photo?: string;
   discountType?: DiscountType;
   discountValue?: number;
+  allowReRegistration?: boolean; // Admin approval for re-registration across years
 }
 
 export type DiscountType = 'none' | 'sibling' | 'staff' | 'scholarship' | 'custom';

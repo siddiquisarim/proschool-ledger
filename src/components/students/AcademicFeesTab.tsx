@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -16,9 +18,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Percent, CreditCard, Check } from 'lucide-react';
+import { Percent, CreditCard, Check, Plus, AlertCircle } from 'lucide-react';
 import { mockAcademicYears, mockAcademicClasses, mockFeeDiscounts, mockFeeTypes } from '@/data/settingsData';
 import { cn } from '@/lib/utils';
+import { CustomFee } from '@/types/settings';
+import { Badge } from '@/components/ui/badge';
 
 interface AcademicFeesTabProps {
   levelId: string;
@@ -26,6 +30,10 @@ interface AcademicFeesTabProps {
   selectedClassId: string;
   onAcademicYearChange: (yearId: string) => void;
   onClassChange: (classId: string) => void;
+  allowReRegistration?: boolean;
+  onAllowReRegistrationChange?: (allow: boolean) => void;
+  isEditMode?: boolean;
+  studentId?: string;
 }
 
 export function AcademicFeesTab({
@@ -34,15 +42,23 @@ export function AcademicFeesTab({
   selectedClassId,
   onAcademicYearChange,
   onClassChange,
+  allowReRegistration = false,
+  onAllowReRegistrationChange,
+  isEditMode = false,
+  studentId,
 }: AcademicFeesTabProps) {
   const [isDiscountDialogOpen, setIsDiscountDialogOpen] = useState(false);
   const [isPayDialogOpen, setIsPayDialogOpen] = useState(false);
+  const [isExtraFeeDialogOpen, setIsExtraFeeDialogOpen] = useState(false);
   const [selectedFees, setSelectedFees] = useState<string[]>([]);
   const [selectedDiscountYear, setSelectedDiscountYear] = useState(selectedAcademicYear);
   const [selectedDiscountId, setSelectedDiscountId] = useState('');
   const [appliedDiscounts, setAppliedDiscounts] = useState<{ discountId: string; feeId: string }[]>([]);
+  const [customFees, setCustomFees] = useState<CustomFee[]>([]);
+  const [newCustomFee, setNewCustomFee] = useState({ name: '', amount: 0, description: '' });
 
-  const classesForLevel = mockAcademicClasses.filter(c => c.levelId === levelId && c.isActive);
+  const classesForLevel = mockAcademicClasses.filter(c => c.levelId === levelId && c.status === 'read_write');
+  const readOnlyClasses = mockAcademicClasses.filter(c => c.levelId === levelId && c.status === 'read');
   const activeDiscounts = mockFeeDiscounts.filter(d => d.isActive);
   const mandatoryFees = mockFeeTypes.filter(f => f.type === 'mandatory');
   const optionalFees = mockFeeTypes.filter(f => f.type === 'optional');
@@ -71,11 +87,15 @@ export function AcademicFeesTab({
   };
 
   const getTotalSelected = () => {
-    return selectedFees.reduce((sum, feeId) => {
+    const feeTotal = selectedFees.reduce((sum, feeId) => {
       const fee = mockFeeTypes.find(f => f.id === feeId);
       if (!fee) return sum;
       return sum + calculateFeeAmount(feeId, fee.amount);
     }, 0);
+    
+    const customTotal = customFees.filter(f => f.status === 'unpaid').reduce((sum, f) => sum + f.amount, 0);
+    
+    return feeTotal + customTotal;
   };
 
   const applyDiscount = () => {
@@ -84,7 +104,6 @@ export function AcademicFeesTab({
     const discount = activeDiscounts.find(d => d.id === selectedDiscountId);
     if (!discount) return;
 
-    // Apply discount to applicable fees
     const newDiscounts = discount.applicableFees.map(feeId => ({
       discountId: selectedDiscountId,
       feeId,
@@ -100,8 +119,50 @@ export function AcademicFeesTab({
     return activeDiscounts.find(d => d.id === applied.discountId);
   };
 
+  const addCustomFee = () => {
+    if (!newCustomFee.name || newCustomFee.amount <= 0) return;
+    
+    const customFee: CustomFee = {
+      id: `custom-fee-${Date.now()}`,
+      studentId: studentId || '',
+      name: newCustomFee.name,
+      amount: newCustomFee.amount,
+      description: newCustomFee.description,
+      status: 'unpaid',
+      createdAt: new Date().toISOString(),
+    };
+    
+    setCustomFees([...customFees, customFee]);
+    setNewCustomFee({ name: '', amount: 0, description: '' });
+    setIsExtraFeeDialogOpen(false);
+  };
+
+  const selectedClass = mockAcademicClasses.find(c => c.id === selectedClassId);
+  const isClassFull = selectedClass && selectedClass.enrolledStudents >= selectedClass.maxStudents;
+
   return (
     <div className="space-y-6">
+      {/* Re-registration Option */}
+      {isEditMode && (
+        <Card className="p-4 bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600" />
+              <div>
+                <p className="font-medium">Allow Re-Registration</p>
+                <p className="text-sm text-muted-foreground">
+                  Enable this to allow student to be registered for multiple academic years
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={allowReRegistration}
+              onCheckedChange={onAllowReRegistrationChange}
+            />
+          </div>
+        </Card>
+      )}
+
       {/* Academic Year & Class Selection */}
       <Card className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -128,10 +189,26 @@ export function AcademicFeesTab({
               </SelectTrigger>
               <SelectContent>
                 {classesForLevel.map(cls => (
-                  <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
+                  <SelectItem key={cls.id} value={cls.id}>
+                    {cls.name} ({cls.enrolledStudents}/{cls.maxStudents})
+                    {cls.enrolledStudents >= cls.maxStudents && ' - FULL'}
+                  </SelectItem>
                 ))}
+                {readOnlyClasses.length > 0 && (
+                  <>
+                    <SelectItem value="divider" disabled>── Read Only (No Enrollment) ──</SelectItem>
+                    {readOnlyClasses.map(cls => (
+                      <SelectItem key={cls.id} value={cls.id} disabled>
+                        {cls.name} (Read Only)
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
               </SelectContent>
             </Select>
+            {isClassFull && (
+              <p className="text-xs text-destructive">This class has reached maximum capacity</p>
+            )}
           </div>
         </div>
       </Card>
@@ -216,6 +293,37 @@ export function AcademicFeesTab({
               ))}
             </div>
           </Card>
+
+          {/* Custom/Extra Fees */}
+          <Card className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h4 className="font-medium">Extra Fees (Custom)</h4>
+              <Button variant="outline" size="sm" onClick={() => setIsExtraFeeDialogOpen(true)}>
+                <Plus className="w-4 h-4" />
+                Add Extra Fee
+              </Button>
+            </div>
+            {customFees.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No custom fees added</p>
+            ) : (
+              <div className="space-y-2">
+                {customFees.map(fee => (
+                  <div key={fee.id} className="flex items-center justify-between p-3 border rounded">
+                    <div>
+                      <p className="font-medium">{fee.name}</p>
+                      {fee.description && <p className="text-xs text-muted-foreground">{fee.description}</p>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={fee.status === 'paid' ? 'default' : 'secondary'}>
+                        {fee.status}
+                      </Badge>
+                      <span className="font-mono font-medium">AED {fee.amount.toLocaleString()}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
         </div>
 
         {/* Payment Summary */}
@@ -223,7 +331,7 @@ export function AcademicFeesTab({
           <Card className="p-4 sticky top-4">
             <h4 className="font-medium mb-4">Payment Summary</h4>
             <div className="space-y-3">
-              {selectedFees.length === 0 ? (
+              {selectedFees.length === 0 && customFees.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Select fees to see summary</p>
               ) : (
                 <>
@@ -246,6 +354,12 @@ export function AcademicFeesTab({
                       </div>
                     );
                   })}
+                  {customFees.filter(f => f.status === 'unpaid').map(fee => (
+                    <div key={fee.id} className="flex justify-between text-sm">
+                      <span>{fee.name} (Custom)</span>
+                      <span className="font-mono">{fee.amount.toLocaleString()}</span>
+                    </div>
+                  ))}
                   <div className="border-t pt-3 flex justify-between font-medium">
                     <span>Total Due</span>
                     <span className="font-mono text-lg">AED {getTotalSelected().toLocaleString()}</span>
@@ -263,11 +377,54 @@ export function AcademicFeesTab({
           <Percent className="w-4 h-4" />
           Apply Discount
         </Button>
-        <Button variant="enterprise" onClick={() => setIsPayDialogOpen(true)} disabled={selectedFees.length === 0}>
+        <Button variant="enterprise" onClick={() => setIsPayDialogOpen(true)} disabled={selectedFees.length === 0 && customFees.filter(f => f.status === 'unpaid').length === 0}>
           <CreditCard className="w-4 h-4" />
           Process Payment
         </Button>
       </div>
+
+      {/* Extra Fee Dialog */}
+      <Dialog open={isExtraFeeDialogOpen} onOpenChange={setIsExtraFeeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Extra Fee</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Fee Name *</Label>
+              <Input
+                value={newCustomFee.name}
+                onChange={(e) => setNewCustomFee({ ...newCustomFee, name: e.target.value })}
+                placeholder="e.g., Sports Equipment"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Amount (AED) *</Label>
+              <Input
+                type="number"
+                value={newCustomFee.amount}
+                onChange={(e) => setNewCustomFee({ ...newCustomFee, amount: Number(e.target.value) })}
+                placeholder="0"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input
+                value={newCustomFee.description}
+                onChange={(e) => setNewCustomFee({ ...newCustomFee, description: e.target.value })}
+                placeholder="Optional description"
+              />
+            </div>
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setIsExtraFeeDialogOpen(false)}>Cancel</Button>
+              <Button variant="enterprise" onClick={addCustomFee} disabled={!newCustomFee.name || newCustomFee.amount <= 0}>
+                <Plus className="w-4 h-4" />
+                Add Fee
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Discount Dialog */}
       <Dialog open={isDiscountDialogOpen} onOpenChange={setIsDiscountDialogOpen}>
@@ -349,6 +506,12 @@ export function AcademicFeesTab({
                     </div>
                   );
                 })}
+                {customFees.filter(f => f.status === 'unpaid').map(fee => (
+                  <div key={fee.id} className="flex justify-between p-2 border rounded text-sm bg-amber-50 dark:bg-amber-950/20">
+                    <span>{fee.name} (Custom)</span>
+                    <span className="font-mono">AED {fee.amount.toLocaleString()}</span>
+                  </div>
+                ))}
               </div>
             </div>
             <div className="space-y-4">
@@ -358,10 +521,10 @@ export function AcademicFeesTab({
                   <div className="flex justify-between">
                     <span>Subtotal</span>
                     <span className="font-mono">
-                      AED {selectedFees.reduce((sum, feeId) => {
+                      AED {(selectedFees.reduce((sum, feeId) => {
                         const fee = mockFeeTypes.find(f => f.id === feeId);
                         return sum + (fee?.amount || 0);
-                      }, 0).toLocaleString()}
+                      }, 0) + customFees.filter(f => f.status === 'unpaid').reduce((sum, f) => sum + f.amount, 0)).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between text-accent">

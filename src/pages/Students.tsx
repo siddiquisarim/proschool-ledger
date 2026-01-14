@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import {
   Dialog,
   DialogContent,
@@ -23,13 +24,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Search, Plus, MoreHorizontal, Eye, Edit, Trash2, Download, User, Users, GraduationCap, FileText, Heart, UserPlus } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Eye, Edit, Trash2, Download, User, Users, GraduationCap, FileText, Heart, UserPlus, UserX, UserCheck } from 'lucide-react';
 import { mockStudents, mockPayments, mockFeeStructures } from '@/data/mockData';
 import { mockLevels } from '@/data/settingsData';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { Guardian, MedicalRecord, RelatedStudent } from '@/types/settings';
+import { Student } from '@/types';
 
 // Import tab components
 import { StudentInfoTab } from '@/components/students/StudentInfoTab';
@@ -46,8 +49,11 @@ export function StudentsPage() {
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [students, setStudents] = useState(mockStudents);
 
-  const filteredStudents = mockStudents.filter((student) => {
+  const filteredStudents = students.filter((student) => {
     const matchesSearch =
       student.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -58,7 +64,7 @@ export function StudentsPage() {
   });
 
   const getStudentBalance = (studentId: string) => {
-    const student = mockStudents.find(s => s.id === studentId);
+    const student = students.find(s => s.id === studentId);
     if (!student) return { totalDue: 0, totalPaid: 0, balance: 0 };
 
     const mandatoryFees = mockFeeStructures.filter(f => f.type === 'mandatory');
@@ -79,6 +85,19 @@ export function StudentsPage() {
       .reduce((sum, p) => sum + p.amount, 0);
 
     return { totalDue, totalPaid, balance: totalDue - totalPaid };
+  };
+
+  const handleViewStudent = (student: Student) => {
+    setSelectedStudent(student);
+    setIsViewDialogOpen(true);
+  };
+
+  const handleToggleStatus = (studentId: string) => {
+    setStudents(students.map(s => 
+      s.id === studentId 
+        ? { ...s, status: s.status === 'active' ? 'inactive' : 'active' as const }
+        : s
+    ));
   };
 
   return (
@@ -143,6 +162,7 @@ export function StudentsPage() {
                 <th>{t('student.name')}</th>
                 <th>Level</th>
                 <th>Parent Contact</th>
+                <th>Status</th>
                 <th>Fee Status</th>
                 <th>Balance</th>
                 <th className="w-12">{t('common.actions')}</th>
@@ -153,7 +173,7 @@ export function StudentsPage() {
                 const { totalDue, totalPaid, balance } = getStudentBalance(student.id);
                 const paidPercentage = totalDue > 0 ? (totalPaid / totalDue) * 100 : 0;
                 return (
-                  <tr key={student.id} className="cursor-pointer" onClick={() => navigate(`/students/${student.id}`)}>
+                  <tr key={student.id} className="cursor-pointer" onClick={() => handleViewStudent(student)}>
                     <td className="font-mono text-xs">{student.studentId}</td>
                     <td>
                       <div>
@@ -167,6 +187,11 @@ export function StudentsPage() {
                         <p>{student.parentName}</p>
                         <p className="text-xs text-muted-foreground">{student.parentPhone}</p>
                       </div>
+                    </td>
+                    <td>
+                      <Badge variant={student.status === 'active' ? 'default' : 'secondary'}>
+                        {student.status}
+                      </Badge>
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
@@ -185,9 +210,28 @@ export function StudentsPage() {
                           <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="w-4 h-4" /></Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => navigate(`/students/${student.id}`)}><Eye className="w-4 h-4 mr-2" />View Profile</DropdownMenuItem>
-                          <DropdownMenuItem><Edit className="w-4 h-4 mr-2" />Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-destructive"><Trash2 className="w-4 h-4 mr-2" />Delete</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleViewStudent(student)}>
+                            <Eye className="w-4 h-4 mr-2" />View Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => navigate(`/students/${student.id}`)}>
+                            <Edit className="w-4 h-4 mr-2" />Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem onClick={() => handleToggleStatus(student.id)}>
+                            {student.status === 'active' ? (
+                              <>
+                                <UserX className="w-4 h-4 mr-2" />Set Inactive
+                              </>
+                            ) : (
+                              <>
+                                <UserCheck className="w-4 h-4 mr-2" />Set Active
+                              </>
+                            )}
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive">
+                            <Trash2 className="w-4 h-4 mr-2" />Delete
+                          </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </td>
@@ -203,28 +247,66 @@ export function StudentsPage() {
       </Card>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <p>Showing {filteredStudents.length} of {mockStudents.length} students</p>
+        <p>Showing {filteredStudents.length} of {students.length} students</p>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" disabled>Previous</Button>
           <Button variant="outline" size="sm" disabled>Next</Button>
         </div>
       </div>
+
+      {/* View/Edit Student Dialog */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedStudent && `${selectedStudent.firstName} ${selectedStudent.lastName}`}
+              {selectedStudent && (
+                <Badge variant={selectedStudent.status === 'active' ? 'default' : 'secondary'} className="ml-2">
+                  {selectedStudent.status}
+                </Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedStudent && (
+            <StudentForm 
+              onClose={() => setIsViewDialogOpen(false)} 
+              student={selectedStudent}
+              isEditMode={true}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
 
-function StudentForm({ onClose }: { onClose: () => void }) {
+interface StudentFormProps {
+  onClose: () => void;
+  student?: Student;
+  isEditMode?: boolean;
+}
+
+function StudentForm({ onClose, student, isEditMode = false }: StudentFormProps) {
   const [activeTab, setActiveTab] = useState('info');
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', arabicName: '', cprNumber: '', dateOfBirth: '',
-    gender: '', enrollmentDate: new Date().toISOString().split('T')[0], levelId: '',
-    address: '', returnAddress: '', transportLineId: '',
+    firstName: student?.firstName || '', 
+    lastName: student?.lastName || '', 
+    arabicName: student?.arabicName || '', 
+    cprNumber: student?.cprNumber || '', 
+    dateOfBirth: student?.dateOfBirth || '',
+    gender: student?.gender || '', 
+    enrollmentDate: student?.enrollmentDate || new Date().toISOString().split('T')[0], 
+    levelId: student?.levelId || '',
+    address: student?.address || '', 
+    returnAddress: student?.returnAddress || '', 
+    transportLineId: student?.transportLineId || '',
   });
   const [guardians, setGuardians] = useState<Guardian[]>([]);
   const [selectedAcademicYear, setSelectedAcademicYear] = useState('ay-2024-25');
   const [selectedClassId, setSelectedClassId] = useState('');
   const [medicalRecords, setMedicalRecords] = useState<MedicalRecord[]>([]);
   const [relatedStudents, setRelatedStudents] = useState<RelatedStudent[]>([]);
+  const [allowReRegistration, setAllowReRegistration] = useState(student?.allowReRegistration || false);
 
   const handleFormChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -256,11 +338,15 @@ function StudentForm({ onClose }: { onClose: () => void }) {
           selectedClassId={selectedClassId}
           onAcademicYearChange={setSelectedAcademicYear}
           onClassChange={setSelectedClassId}
+          allowReRegistration={allowReRegistration}
+          onAllowReRegistrationChange={setAllowReRegistration}
+          isEditMode={isEditMode}
+          studentId={student?.id}
         />
       </TabsContent>
 
       <TabsContent value="statement" className="mt-4">
-        <StatementTab />
+        <StatementTab studentId={student?.id} />
       </TabsContent>
 
       <TabsContent value="medical" className="mt-4">
@@ -273,7 +359,7 @@ function StudentForm({ onClose }: { onClose: () => void }) {
 
       <div className="flex justify-end gap-2 pt-4 border-t mt-4">
         <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-        <Button type="submit" variant="enterprise">Save Student</Button>
+        <Button type="submit" variant="enterprise">{isEditMode ? 'Update Student' : 'Save Student'}</Button>
       </div>
     </Tabs>
   );

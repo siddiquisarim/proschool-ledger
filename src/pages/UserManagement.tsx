@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Users, Plus, Search, Edit2, Trash2, Shield, 
-  Eye, EyeOff, MoreVertical, UserCheck, UserX 
+  Eye, EyeOff, MoreVertical, UserCheck, UserX, Key, RefreshCw 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +41,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { useApp } from '@/contexts/AppContext';
 import { UserRole } from '@/types';
+import { toast } from 'sonner';
 
 interface SystemUser {
   id: string;
@@ -63,6 +64,8 @@ const availableModules = [
   { id: 'id_cards', label: 'ID Cards', description: 'Generate student ID cards' },
   { id: 'settings', label: 'Settings', description: 'System configuration' },
   { id: 'users', label: 'User Management', description: 'Manage system users' },
+  { id: 'tickets', label: 'Tickets', description: 'Ticket management' },
+  { id: 'hr', label: 'HR Management', description: 'HR module access' },
 ];
 
 const roleColors: Record<UserRole, string> = {
@@ -74,9 +77,9 @@ const roleColors: Record<UserRole, string> = {
 
 const defaultPermissions: Record<UserRole, string[]> = {
   admin: availableModules.map(m => m.id),
-  supervisor: ['dashboard', 'students', 'attendance', 'verification', 'reports'],
+  supervisor: ['dashboard', 'students', 'attendance', 'verification', 'reports', 'tickets', 'hr'],
   cashier: ['dashboard', 'students', 'fees', 'attendance'],
-  accountant: ['dashboard', 'verification', 'reports'],
+  accountant: ['dashboard', 'verification', 'reports', 'hr'],
 };
 
 const UserManagement = () => {
@@ -86,8 +89,12 @@ const UserManagement = () => {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isPermissionsDialogOpen, setIsPermissionsDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<SystemUser | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Mock users data
   const [users, setUsers] = useState<SystemUser[]>([
@@ -162,6 +169,7 @@ const UserManagement = () => {
     setUsers([...users, newUser]);
     setIsAddDialogOpen(false);
     resetForm();
+    toast.success('User created successfully');
   };
 
   const handleEditUser = () => {
@@ -173,6 +181,7 @@ const UserManagement = () => {
     ));
     setIsEditDialogOpen(false);
     resetForm();
+    toast.success('User updated successfully');
   };
 
   const handleDeleteUser = () => {
@@ -180,6 +189,7 @@ const UserManagement = () => {
     setUsers(users.filter(u => u.id !== selectedUser.id));
     setIsDeleteDialogOpen(false);
     setSelectedUser(null);
+    toast.success('User deleted successfully');
   };
 
   const handleSavePermissions = () => {
@@ -190,6 +200,7 @@ const UserManagement = () => {
         : u
     ));
     setIsPermissionsDialogOpen(false);
+    toast.success('Permissions updated successfully');
   };
 
   const handleToggleStatus = (user: SystemUser) => {
@@ -198,6 +209,32 @@ const UserManagement = () => {
         ? { ...u, status: u.status === 'active' ? 'inactive' : 'active' }
         : u
     ));
+    toast.success(`User ${user.status === 'active' ? 'deactivated' : 'activated'} successfully`);
+  };
+
+  const handleResetPassword = () => {
+    if (!selectedUser) return;
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match');
+      return;
+    }
+    if (newPassword.length < 6) {
+      toast.error('Password must be at least 6 characters');
+      return;
+    }
+    // In real implementation, this would call an API
+    toast.success(`Password reset successfully for ${selectedUser.name}`);
+    setIsResetPasswordDialogOpen(false);
+    setNewPassword('');
+    setConfirmPassword('');
+    setSelectedUser(null);
+  };
+
+  const openResetPasswordDialog = (user: SystemUser) => {
+    setSelectedUser(user);
+    setNewPassword('');
+    setConfirmPassword('');
+    setIsResetPasswordDialogOpen(true);
   };
 
   const openEditDialog = (user: SystemUser) => {
@@ -231,6 +268,16 @@ const UserManagement = () => {
 
   const handleRoleChange = (role: UserRole) => {
     setFormData({ ...formData, role });
+  };
+
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
+    let password = '';
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewPassword(password);
+    setConfirmPassword(password);
   };
 
   return (
@@ -372,6 +419,10 @@ const UserManagement = () => {
                         <DropdownMenuItem onClick={() => openPermissionsDialog(user)}>
                           <Shield className="h-4 w-4 mr-2" />
                           Manage Permissions
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openResetPasswordDialog(user)}>
+                          <Key className="h-4 w-4 mr-2" />
+                          Reset Password
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleToggleStatus(user)}>
                           {user.status === 'active' ? (
@@ -548,48 +599,105 @@ const UserManagement = () => {
 
       {/* Permissions Dialog */}
       <Dialog open={isPermissionsDialogOpen} onOpenChange={setIsPermissionsDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Manage Permissions</DialogTitle>
             <DialogDescription>
-              Configure module access for {selectedUser?.name}
+              {selectedUser && `Configure module access for ${selectedUser.name}`}
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <div className="space-y-3 max-h-[400px] overflow-y-auto">
-              {availableModules.map((module) => (
-                <div 
-                  key={module.id}
-                  className="flex items-start gap-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors"
-                >
-                  <Checkbox
-                    id={module.id}
-                    checked={tempPermissions.includes(module.id)}
-                    onCheckedChange={(checked) => {
-                      if (checked) {
-                        setTempPermissions([...tempPermissions, module.id]);
-                      } else {
-                        setTempPermissions(tempPermissions.filter(p => p !== module.id));
-                      }
-                    }}
-                  />
-                  <div className="flex-1">
-                    <Label htmlFor={module.id} className="font-medium cursor-pointer">
-                      {module.label}
-                    </Label>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {module.description}
-                    </p>
-                  </div>
+          <div className="space-y-4 py-4 max-h-[400px] overflow-y-auto">
+            {availableModules.map((module) => (
+              <div key={module.id} className="flex items-start space-x-3 p-2 rounded hover:bg-muted/50">
+                <Checkbox
+                  id={module.id}
+                  checked={tempPermissions.includes(module.id)}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setTempPermissions([...tempPermissions, module.id]);
+                    } else {
+                      setTempPermissions(tempPermissions.filter(p => p !== module.id));
+                    }
+                  }}
+                />
+                <div className="space-y-1">
+                  <Label htmlFor={module.id} className="font-medium cursor-pointer">
+                    {module.label}
+                  </Label>
+                  <p className="text-xs text-muted-foreground">{module.description}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsPermissionsDialogOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleSavePermissions}>Save Permissions</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reset Password Dialog */}
+      <Dialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reset Password</DialogTitle>
+            <DialogDescription>
+              {selectedUser && `Set a new password for ${selectedUser.name}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="new-password">New Password</Label>
+                <Button variant="ghost" size="sm" onClick={generateRandomPassword}>
+                  <RefreshCw className="h-4 w-4 mr-1" />
+                  Generate
+                </Button>
+              </div>
+              <div className="relative">
+                <Input
+                  id="new-password"
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="pr-10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Confirm new password"
+              />
+            </div>
+            {newPassword && confirmPassword && newPassword !== confirmPassword && (
+              <p className="text-sm text-destructive">Passwords do not match</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsResetPasswordDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleResetPassword}
+              disabled={!newPassword || newPassword !== confirmPassword}
+            >
+              Reset Password
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
