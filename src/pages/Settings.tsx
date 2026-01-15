@@ -40,7 +40,7 @@ import {
   X,
 } from 'lucide-react';
 import { mockSettings, mockFeeStructures } from '@/data/mockData';
-import { mockLevels, mockAcademicClasses, mockTransportLines, mockAcademicYears, mockFeeDiscounts, mockAcademicYearEnrollments } from '@/data/settingsData';
+import { mockLevels, mockAcademicClasses, mockTransportLines, mockAcademicYears, mockFeeDiscounts, mockAcademicYearEnrollments, mockFeeTypes } from '@/data/settingsData';
 import { Level, AcademicClass, TransportLine, FeeDiscount, ClassStatus } from '@/types/settings';
 
 export function SettingsPage() {
@@ -699,7 +699,7 @@ export function SettingsPage() {
 
       {/* Discount Dialog */}
       <Dialog open={isDiscountDialogOpen} onOpenChange={setIsDiscountDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingDiscount ? 'Edit Discount' : 'Add Discount'}</DialogTitle>
           </DialogHeader>
@@ -728,10 +728,49 @@ export function SettingsPage() {
                 <Input type="number" value={discountForm.value} onChange={(e) => setDiscountForm({ ...discountForm, value: Number(e.target.value) })} />
               </div>
             </div>
+            
+            {/* Applicable Fee Types - Only show for percentage discounts */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Applicable Fee Types</Label>
+                <span className="text-xs text-muted-foreground">
+                  {discountForm.type === 'percentage' ? 'Select which fees this discount applies to' : 'Fixed discounts apply to all fees'}
+                </span>
+              </div>
+              {discountForm.type === 'percentage' ? (
+                <div className="grid grid-cols-2 gap-2 p-3 border rounded bg-muted/30">
+                  {mockFeeTypes.map(fee => {
+                    const isChecked = discountForm.applicableFees.includes(fee.id);
+                    return (
+                      <label key={fee.id} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-muted/50">
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setDiscountForm({ ...discountForm, applicableFees: [...discountForm.applicableFees, fee.id] });
+                            } else {
+                              setDiscountForm({ ...discountForm, applicableFees: discountForm.applicableFees.filter(f => f !== fee.id) });
+                            }
+                          }}
+                          className="rounded border-border"
+                        />
+                        <span className="text-sm">{fee.name}</span>
+                        <Badge variant="outline" className="text-xs ml-auto">{fee.type}</Badge>
+                      </label>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground p-3 bg-muted/30 rounded">
+                  Fixed amount discounts are applied directly to the total and are not restricted to specific fee types.
+                </p>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsDiscountDialogOpen(false)}>Cancel</Button>
-            <Button variant="enterprise" onClick={saveDiscount} disabled={!discountForm.name}>Save</Button>
+            <Button variant="enterprise" onClick={saveDiscount} disabled={!discountForm.name || (discountForm.type === 'percentage' && discountForm.applicableFees.length === 0)}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
