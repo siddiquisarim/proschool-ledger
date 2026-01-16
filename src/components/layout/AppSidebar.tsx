@@ -4,8 +4,6 @@ import { cn } from '@/lib/utils';
 import {
   LayoutDashboard,
   Users,
-  Receipt,
-  CreditCard,
   CalendarCheck,
   CheckSquare,
   BarChart3,
@@ -37,8 +35,6 @@ interface NavItem {
 const navItems: NavItem[] = [
   { key: 'nav.dashboard', icon: LayoutDashboard, path: '/', roles: ['admin', 'cashier', 'supervisor', 'accountant'] },
   { key: 'nav.students', icon: Users, path: '/students', roles: ['admin', 'cashier', 'supervisor'] },
-  { key: 'nav.fees', icon: Receipt, path: '/fees', roles: ['admin', 'accountant'] },
-  { key: 'nav.payments', icon: CreditCard, path: '/payments', roles: ['admin', 'cashier'] },
   { key: 'nav.attendance', icon: CalendarCheck, path: '/attendance', roles: ['admin', 'cashier', 'supervisor'] },
   { key: 'nav.verification', icon: CheckSquare, path: '/verification', roles: ['admin', 'supervisor', 'accountant'] },
   { key: 'nav.reports', icon: BarChart3, path: '/reports', roles: ['admin', 'supervisor', 'accountant'] },
