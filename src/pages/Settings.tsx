@@ -218,14 +218,16 @@ export function SettingsPage() {
       </div>
 
       <Tabs defaultValue="school" className="space-y-4">
-        <TabsList className="flex-wrap">
-          <TabsTrigger value="school"><Building2 className="w-4 h-4 mr-2" />School Info</TabsTrigger>
-          <TabsTrigger value="academic"><Calendar className="w-4 h-4 mr-2" />Academic Year</TabsTrigger>
-          <TabsTrigger value="levels"><Layers className="w-4 h-4 mr-2" />Levels & Classes</TabsTrigger>
-          <TabsTrigger value="transport"><Bus className="w-4 h-4 mr-2" />Transport</TabsTrigger>
-          <TabsTrigger value="fees"><DollarSign className="w-4 h-4 mr-2" />Fee Structures</TabsTrigger>
-          <TabsTrigger value="discounts"><Percent className="w-4 h-4 mr-2" />Discounts</TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-1 px-1">
+          <TabsList className="inline-flex w-auto min-w-full md:w-auto gap-1">
+            <TabsTrigger value="school" className="text-xs sm:text-sm flex-shrink-0"><Building2 className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">School Info</span><span className="sm:hidden">School</span></TabsTrigger>
+            <TabsTrigger value="academic" className="text-xs sm:text-sm flex-shrink-0"><Calendar className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Academic Year</span><span className="sm:hidden">Year</span></TabsTrigger>
+            <TabsTrigger value="levels" className="text-xs sm:text-sm flex-shrink-0"><Layers className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Levels & Classes</span><span className="sm:hidden">Levels</span></TabsTrigger>
+            <TabsTrigger value="transport" className="text-xs sm:text-sm flex-shrink-0"><Bus className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Transport</span><span className="sm:hidden">Trans</span></TabsTrigger>
+            <TabsTrigger value="fees" className="text-xs sm:text-sm flex-shrink-0"><DollarSign className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Fee Structures</span><span className="sm:hidden">Fees</span></TabsTrigger>
+            <TabsTrigger value="discounts" className="text-xs sm:text-sm flex-shrink-0"><Percent className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Discounts</span><span className="sm:hidden">Disc</span></TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* School Info */}
         <TabsContent value="school">

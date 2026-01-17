@@ -113,7 +113,7 @@ export function StudentsPage() {
             <DialogTrigger asChild>
               <Button variant="enterprise" size="sm"><Plus className="w-4 h-4" />{t('student.add')}</Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
               <DialogHeader>
                 <DialogTitle>{t('student.add')}</DialogTitle>
               </DialogHeader>
@@ -256,7 +256,7 @@ export function StudentsPage() {
 
       {/* View/Edit Student Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
           <DialogHeader>
             <DialogTitle>
               {selectedStudent && `${selectedStudent.firstName} ${selectedStudent.lastName}`}
@@ -314,14 +314,40 @@ function StudentForm({ onClose, student, isEditMode = false }: StudentFormProps)
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid grid-cols-6 w-full">
-        <TabsTrigger value="info"><User className="w-4 h-4 mr-1" />Student Info</TabsTrigger>
-        <TabsTrigger value="guardians"><Users className="w-4 h-4 mr-1" />Guardians</TabsTrigger>
-        <TabsTrigger value="academic"><GraduationCap className="w-4 h-4 mr-1" />Academic & Fees</TabsTrigger>
-        <TabsTrigger value="statement"><FileText className="w-4 h-4 mr-1" />Statement</TabsTrigger>
-        <TabsTrigger value="medical"><Heart className="w-4 h-4 mr-1" />Medical</TabsTrigger>
-        <TabsTrigger value="related"><UserPlus className="w-4 h-4 mr-1" />Related</TabsTrigger>
-      </TabsList>
+      <div className="overflow-x-auto -mx-1 px-1">
+        <TabsList className="inline-flex w-auto min-w-full md:grid md:grid-cols-6 md:w-full gap-1">
+          <TabsTrigger value="info" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3">
+            <User className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">Student Info</span>
+            <span className="sm:hidden">Info</span>
+          </TabsTrigger>
+          <TabsTrigger value="guardians" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3">
+            <Users className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">Guardians</span>
+            <span className="sm:hidden">Guard</span>
+          </TabsTrigger>
+          <TabsTrigger value="academic" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3">
+            <GraduationCap className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">Academic & Fees</span>
+            <span className="sm:hidden">Fees</span>
+          </TabsTrigger>
+          <TabsTrigger value="statement" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3">
+            <FileText className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">Statement</span>
+            <span className="sm:hidden">Stmt</span>
+          </TabsTrigger>
+          <TabsTrigger value="medical" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3">
+            <Heart className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">Medical</span>
+            <span className="sm:hidden">Med</span>
+          </TabsTrigger>
+          <TabsTrigger value="related" className="flex-shrink-0 text-xs sm:text-sm px-2 sm:px-3">
+            <UserPlus className="w-4 h-4 sm:mr-1" />
+            <span className="hidden sm:inline">Related</span>
+            <span className="sm:hidden">Rel</span>
+          </TabsTrigger>
+        </TabsList>
+      </div>
 
       <TabsContent value="info" className="mt-4">
         <StudentInfoTab formData={formData} onChange={handleFormChange} />

@@ -145,26 +145,26 @@ export function VerificationPage() {
         
         <div className="p-4">
           {/* Transaction Summary */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 mb-4">
             <div className="text-center p-2 bg-muted/50 rounded">
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Cash</p>
-              <p className="font-mono font-medium">AED {closure.totalCash.toLocaleString()}</p>
+              <p className="font-mono font-medium text-sm sm:text-base">AED {closure.totalCash.toLocaleString()}</p>
             </div>
             <div className="text-center p-2 bg-muted/50 rounded">
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Card</p>
-              <p className="font-mono font-medium">AED {closure.totalCard.toLocaleString()}</p>
+              <p className="font-mono font-medium text-sm sm:text-base">AED {closure.totalCard.toLocaleString()}</p>
             </div>
             <div className="text-center p-2 bg-muted/50 rounded">
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Transfer</p>
-              <p className="font-mono font-medium">AED {closure.totalBankTransfer.toLocaleString()}</p>
+              <p className="font-mono font-medium text-sm sm:text-base">AED {closure.totalBankTransfer.toLocaleString()}</p>
             </div>
             <div className="text-center p-2 bg-muted/50 rounded">
               <p className="text-xs text-muted-foreground uppercase tracking-wider">Check</p>
-              <p className="font-mono font-medium">AED {closure.totalCheck.toLocaleString()}</p>
+              <p className="font-mono font-medium text-sm sm:text-base">AED {closure.totalCheck.toLocaleString()}</p>
             </div>
-            <div className="text-center p-2 bg-primary/10 rounded border-2 border-primary/20">
+            <div className="text-center p-2 bg-primary/10 rounded border-2 border-primary/20 col-span-2 sm:col-span-1">
               <p className="text-xs text-primary font-medium uppercase tracking-wider">Total</p>
-              <p className="font-mono font-semibold text-lg">AED {closure.grandTotal.toLocaleString()}</p>
+              <p className="font-mono font-semibold text-base sm:text-lg">AED {closure.grandTotal.toLocaleString()}</p>
             </div>
           </div>
 
@@ -194,32 +194,34 @@ export function VerificationPage() {
           )}
 
           {/* Actions */}
-          <div className="flex items-center gap-2 pt-3 border-t border-border">
-            <Button variant="outline" size="sm" onClick={() => handleViewDetails(closure)}>
+          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border">
+            <Button variant="outline" size="sm" className="text-xs sm:text-sm" onClick={() => handleViewDetails(closure)}>
               <Eye className="w-4 h-4" />
-              View Transactions
+              <span className="hidden sm:inline">View Transactions</span>
+              <span className="sm:hidden">View</span>
             </Button>
             {showActions && actionLevel === 'supervisor' && isSupervisor && (
               <>
-                <Button variant="success" size="sm" onClick={() => handleAction(closure, 'approve')}>
+                <Button variant="success" size="sm" className="text-xs sm:text-sm" onClick={() => handleAction(closure, 'approve')}>
                   <CheckCircle2 className="w-4 h-4" />
-                  Approve
+                  <span className="hidden sm:inline">Approve</span>
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleAction(closure, 'reject')}>
+                <Button variant="destructive" size="sm" className="text-xs sm:text-sm" onClick={() => handleAction(closure, 'reject')}>
                   <XCircle className="w-4 h-4" />
-                  Reject
+                  <span className="hidden sm:inline">Reject</span>
                 </Button>
               </>
             )}
             {showActions && actionLevel === 'accountant' && isAccountant && (
               <>
-                <Button variant="success" size="sm" onClick={() => handleAction(closure, 'finalize')}>
+                <Button variant="success" size="sm" className="text-xs sm:text-sm" onClick={() => handleAction(closure, 'finalize')}>
                   <CheckCircle2 className="w-4 h-4" />
-                  Finalize
+                  <span className="hidden sm:inline">Finalize</span>
                 </Button>
-                <Button variant="enterprise" size="sm" onClick={() => handleAction(closure, 'deposit')}>
+                <Button variant="enterprise" size="sm" className="text-xs sm:text-sm" onClick={() => handleAction(closure, 'deposit')}>
                   <Building2 className="w-4 h-4" />
-                  Mark Deposited
+                  <span className="hidden sm:inline">Mark Deposited</span>
+                  <span className="sm:hidden">Deposit</span>
                 </Button>
               </>
             )}
@@ -278,34 +280,40 @@ export function VerificationPage() {
 
       {/* Verification Queues */}
       <Tabs defaultValue="pending" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="pending" className="gap-2">
-            <Clock className="w-4 h-4" />
-            Pending Supervisor
-            {pendingSupervisor.length > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 text-xxs bg-amber text-foreground rounded">
-                {pendingSupervisor.length}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="approved" className="gap-2">
-            <AlertTriangle className="w-4 h-4" />
-            Pending Accountant
-            {pendingAccountant.length > 0 && (
-              <span className="ml-1 px-1.5 py-0.5 text-xxs bg-status-partial text-foreground rounded">
-                {pendingAccountant.length}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="finalized" className="gap-2">
-            <CheckCircle2 className="w-4 h-4" />
-            Finalized
-          </TabsTrigger>
-          <TabsTrigger value="history" className="gap-2">
-            <History className="w-4 h-4" />
-            Deposit History
-          </TabsTrigger>
-        </TabsList>
+        <div className="overflow-x-auto -mx-1 px-1">
+          <TabsList className="inline-flex w-auto min-w-full md:w-auto gap-1">
+            <TabsTrigger value="pending" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
+              <Clock className="w-4 h-4" />
+              <span className="hidden sm:inline">Pending Supervisor</span>
+              <span className="sm:hidden">Supervisor</span>
+              {pendingSupervisor.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-xxs bg-amber text-foreground rounded">
+                  {pendingSupervisor.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="approved" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
+              <AlertTriangle className="w-4 h-4" />
+              <span className="hidden sm:inline">Pending Accountant</span>
+              <span className="sm:hidden">Accountant</span>
+              {pendingAccountant.length > 0 && (
+                <span className="ml-1 px-1.5 py-0.5 text-xxs bg-status-partial text-foreground rounded">
+                  {pendingAccountant.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="finalized" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
+              <CheckCircle2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Finalized</span>
+              <span className="sm:hidden">Final</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
+              <History className="w-4 h-4" />
+              <span className="hidden sm:inline">Deposit History</span>
+              <span className="sm:hidden">History</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="pending" className="space-y-4">
           {pendingSupervisor.length === 0 ? (
@@ -349,58 +357,60 @@ export function VerificationPage() {
                 Completed Deposits
               </h3>
             </div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Cashier</TableHead>
-                  <TableHead className="text-center">Transactions</TableHead>
-                  <TableHead className="text-right">Cash</TableHead>
-                  <TableHead className="text-right">Card</TableHead>
-                  <TableHead className="text-right">Transfer</TableHead>
-                  <TableHead className="text-right">Check</TableHead>
-                  <TableHead className="text-right">Total</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {finalized.filter(c => c.status === 'deposited').length === 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
                   <TableRow>
-                    <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
-                      No completed deposits yet
-                    </TableCell>
+                    <TableHead className="whitespace-nowrap">Date</TableHead>
+                    <TableHead className="whitespace-nowrap">Cashier</TableHead>
+                    <TableHead className="text-center whitespace-nowrap hidden sm:table-cell">Trans.</TableHead>
+                    <TableHead className="text-right whitespace-nowrap hidden md:table-cell">Cash</TableHead>
+                    <TableHead className="text-right whitespace-nowrap hidden md:table-cell">Card</TableHead>
+                    <TableHead className="text-right whitespace-nowrap hidden lg:table-cell">Transfer</TableHead>
+                    <TableHead className="text-right whitespace-nowrap hidden lg:table-cell">Check</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Total</TableHead>
+                    <TableHead className="whitespace-nowrap hidden sm:table-cell">Status</TableHead>
+                    <TableHead className="whitespace-nowrap">Actions</TableHead>
                   </TableRow>
-                ) : (
-                  finalized.filter(c => c.status === 'deposited').map(closure => (
-                    <TableRow key={closure.id}>
-                      <TableCell>
-                        {new Date(closure.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </TableCell>
-                      <TableCell className="font-medium">{closure.cashierName}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="secondary">{closure.transactionCount}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-mono">AED {closure.totalCash.toLocaleString()}</TableCell>
-                      <TableCell className="text-right font-mono">AED {closure.totalCard.toLocaleString()}</TableCell>
-                      <TableCell className="text-right font-mono">AED {closure.totalBankTransfer.toLocaleString()}</TableCell>
-                      <TableCell className="text-right font-mono">AED {closure.totalCheck.toLocaleString()}</TableCell>
-                      <TableCell className="text-right font-mono font-semibold">
-                        AED {closure.grandTotal.toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge className="bg-accent text-accent-foreground">Deposited</Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleViewDetails(closure)}>
-                          <Eye className="w-4 h-4" />
-                        </Button>
+                </TableHeader>
+                <TableBody>
+                  {finalized.filter(c => c.status === 'deposited').length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                        No completed deposits yet
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : (
+                    finalized.filter(c => c.status === 'deposited').map(closure => (
+                      <TableRow key={closure.id}>
+                        <TableCell className="whitespace-nowrap text-sm">
+                          {new Date(closure.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </TableCell>
+                        <TableCell className="font-medium text-sm">{closure.cashierName}</TableCell>
+                        <TableCell className="text-center hidden sm:table-cell">
+                          <Badge variant="secondary">{closure.transactionCount}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right font-mono text-sm hidden md:table-cell">AED {closure.totalCash.toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-mono text-sm hidden md:table-cell">AED {closure.totalCard.toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell">AED {closure.totalBankTransfer.toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell">AED {closure.totalCheck.toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-mono font-semibold text-sm whitespace-nowrap">
+                          AED {closure.grandTotal.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="hidden sm:table-cell">
+                          <Badge className="bg-accent text-accent-foreground text-xs">Deposited</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleViewDetails(closure)}>
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </Card>
         </TabsContent>
       </Tabs>

@@ -224,23 +224,26 @@ export function AcademicFeesTab({
                 const discount = getDiscountForFee(fee.id);
                 const finalAmount = calculateFeeAmount(fee.id, fee.amount);
                 return (
-                  <div key={fee.id} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
-                    <div className="flex items-center gap-3">
+                  <div key={fee.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded hover:bg-muted/50 gap-2">
+                    <div className="flex items-start sm:items-center gap-3">
                       <Checkbox
                         id={fee.id}
                         checked={selectedFees.includes(fee.id)}
                         onCheckedChange={(checked) => handleFeeSelect(fee.id, checked as boolean)}
+                        className="mt-1 sm:mt-0"
                       />
-                      <Label htmlFor={fee.id} className="cursor-pointer">
-                        {fee.name}
-                      </Label>
-                      {discount && (
-                        <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded">
-                          {discount.name} ({discount.type === 'percentage' ? `${discount.value}%` : `AED ${discount.value}`})
-                        </span>
-                      )}
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <Label htmlFor={fee.id} className="cursor-pointer">
+                          {fee.name}
+                        </Label>
+                        {discount && (
+                          <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded">
+                            {discount.name} ({discount.type === 'percentage' ? `${discount.value}%` : `AED ${discount.value}`})
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right ml-6 sm:ml-0">
                       {discount ? (
                         <div>
                           <span className="text-sm text-muted-foreground line-through">AED {fee.amount}</span>
@@ -260,7 +263,7 @@ export function AcademicFeesTab({
             <h4 className="font-medium mb-3">Monthly Fees</h4>
             <div className="space-y-2">
               {monthlyFees.map(fee => (
-                <div key={fee.id} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
+                <div key={fee.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded hover:bg-muted/50 gap-2">
                   <div className="flex items-center gap-3">
                     <Checkbox
                       id={fee.id}
@@ -269,7 +272,7 @@ export function AcademicFeesTab({
                     />
                     <Label htmlFor={fee.id} className="cursor-pointer">{fee.name}</Label>
                   </div>
-                  <span className="font-mono font-medium">AED {fee.amount.toLocaleString()} /month</span>
+                  <span className="font-mono font-medium ml-6 sm:ml-0">AED {fee.amount.toLocaleString()} /month</span>
                 </div>
               ))}
             </div>
@@ -279,7 +282,7 @@ export function AcademicFeesTab({
             <h4 className="font-medium mb-3">Optional Fees</h4>
             <div className="space-y-2">
               {optionalFees.map(fee => (
-                <div key={fee.id} className="flex items-center justify-between p-3 border rounded hover:bg-muted/50">
+                <div key={fee.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded hover:bg-muted/50 gap-2">
                   <div className="flex items-center gap-3">
                     <Checkbox
                       id={fee.id}
@@ -288,7 +291,7 @@ export function AcademicFeesTab({
                     />
                     <Label htmlFor={fee.id} className="cursor-pointer">{fee.name}</Label>
                   </div>
-                  <span className="font-mono font-medium">{fee.amount > 0 ? `AED ${fee.amount.toLocaleString()}` : 'Variable'}</span>
+                  <span className="font-mono font-medium ml-6 sm:ml-0">{fee.amount > 0 ? `AED ${fee.amount.toLocaleString()}` : 'Variable'}</span>
                 </div>
               ))}
             </div>
@@ -372,12 +375,12 @@ export function AcademicFeesTab({
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-2">
-        <Button variant="outline" onClick={() => setIsDiscountDialogOpen(true)}>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
+        <Button variant="outline" onClick={() => setIsDiscountDialogOpen(true)} className="w-full sm:w-auto">
           <Percent className="w-4 h-4" />
           Apply Discount
         </Button>
-        <Button variant="enterprise" onClick={() => setIsPayDialogOpen(true)} disabled={selectedFees.length === 0 && customFees.filter(f => f.status === 'unpaid').length === 0}>
+        <Button variant="enterprise" onClick={() => setIsPayDialogOpen(true)} disabled={selectedFees.length === 0 && customFees.filter(f => f.status === 'unpaid').length === 0} className="w-full sm:w-auto">
           <CreditCard className="w-4 h-4" />
           Process Payment
         </Button>

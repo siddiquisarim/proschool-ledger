@@ -132,12 +132,12 @@ export function GuardiansTab({ guardians, onGuardiansChange }: GuardiansTabProps
               Add Guardian
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-lg">
+          <DialogContent className="max-w-lg w-[95vw]">
             <DialogHeader>
               <DialogTitle>{editingGuardian ? 'Edit Guardian' : 'Add Guardian'}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Full Name *</Label>
                   <Input
@@ -155,7 +155,7 @@ export function GuardiansTab({ guardians, onGuardiansChange }: GuardiansTabProps
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Relationship *</Label>
                   <Select
