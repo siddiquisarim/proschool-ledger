@@ -38,10 +38,10 @@ export function StatementTab({ studentId }: StatementTabProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h3 className="font-medium">Payment Statement</h3>
         <div className="flex items-center gap-2">
-          <Label className="text-sm">Academic Year:</Label>
+          <Label className="text-sm whitespace-nowrap">Academic Year:</Label>
           <Select defaultValue="ay-2024-25">
             <SelectTrigger className="w-[150px]">
               <SelectValue />
@@ -56,18 +56,18 @@ export function StatementTab({ studentId }: StatementTabProps) {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card className="p-4 text-center">
-          <p className="text-sm text-muted-foreground">Total Due</p>
-          <p className="text-2xl font-mono font-medium">AED {totalDue.toLocaleString()}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+        <Card className="p-3 sm:p-4 text-center">
+          <p className="text-xs sm:text-sm text-muted-foreground">Total Due</p>
+          <p className="text-xl sm:text-2xl font-mono font-medium">AED {totalDue.toLocaleString()}</p>
         </Card>
-        <Card className="p-4 text-center bg-accent/10 border-accent/20">
-          <p className="text-sm text-muted-foreground">Total Paid</p>
-          <p className="text-2xl font-mono font-medium text-accent">AED {totalPaid.toLocaleString()}</p>
+        <Card className="p-3 sm:p-4 text-center bg-accent/10 border-accent/20">
+          <p className="text-xs sm:text-sm text-muted-foreground">Total Paid</p>
+          <p className="text-xl sm:text-2xl font-mono font-medium text-accent">AED {totalPaid.toLocaleString()}</p>
         </Card>
-        <Card className={cn("p-4 text-center", balance > 0 ? "bg-destructive/10 border-destructive/20" : "bg-accent/10")}>
-          <p className="text-sm text-muted-foreground">Balance</p>
-          <p className={cn("text-2xl font-mono font-medium", balance > 0 ? "text-destructive" : "text-accent")}>
+        <Card className={cn("p-3 sm:p-4 text-center", balance > 0 ? "bg-destructive/10 border-destructive/20" : "bg-accent/10")}>
+          <p className="text-xs sm:text-sm text-muted-foreground">Balance</p>
+          <p className={cn("text-xl sm:text-2xl font-mono font-medium", balance > 0 ? "text-destructive" : "text-accent")}>
             AED {balance.toLocaleString()}
           </p>
         </Card>
@@ -79,44 +79,49 @@ export function StatementTab({ studentId }: StatementTabProps) {
           <table className="enterprise-table">
             <thead>
               <tr>
-                <th>Fee Type</th>
-                <th>Period</th>
-                <th className="text-right">Amount</th>
-                <th className="text-right">Paid</th>
-                <th>Status</th>
-                <th>Date</th>
+                <th className="whitespace-nowrap">Fee Type</th>
+                <th className="whitespace-nowrap hidden sm:table-cell">Period</th>
+                <th className="text-right whitespace-nowrap">Amount</th>
+                <th className="text-right whitespace-nowrap hidden md:table-cell">Paid</th>
+                <th className="whitespace-nowrap">Status</th>
+                <th className="whitespace-nowrap hidden sm:table-cell">Date</th>
               </tr>
             </thead>
             <tbody>
               {mockStatements.map(statement => (
                 <tr key={statement.id}>
-                  <td className="font-medium">{statement.type}</td>
-                  <td className="text-muted-foreground">{statement.month || '-'}</td>
-                  <td className="text-right font-mono">AED {statement.amount.toLocaleString()}</td>
-                  <td className="text-right font-mono">
+                  <td className="font-medium text-sm">
+                    <div>
+                      {statement.type}
+                      <span className="block sm:hidden text-xs text-muted-foreground">{statement.month || '-'}</span>
+                    </div>
+                  </td>
+                  <td className="text-muted-foreground hidden sm:table-cell">{statement.month || '-'}</td>
+                  <td className="text-right font-mono text-sm">AED {statement.amount.toLocaleString()}</td>
+                  <td className="text-right font-mono text-sm hidden md:table-cell">
                     AED {(statement.status === 'paid' ? statement.amount : (statement.paidAmount || 0)).toLocaleString()}
                   </td>
                   <td>
                     {statement.status === 'paid' && (
-                      <Badge variant="default" className="bg-accent text-accent-foreground">
+                      <Badge variant="default" className="bg-accent text-accent-foreground text-xs">
                         <Check className="w-3 h-3 mr-1" />
-                        Paid
+                        <span className="hidden sm:inline">Paid</span>
                       </Badge>
                     )}
                     {statement.status === 'partial' && (
-                      <Badge variant="secondary" className="bg-amber/20 text-amber-foreground">
+                      <Badge variant="secondary" className="bg-amber/20 text-amber-foreground text-xs">
                         <Clock className="w-3 h-3 mr-1" />
-                        Partial
+                        <span className="hidden sm:inline">Partial</span>
                       </Badge>
                     )}
                     {statement.status === 'unpaid' && (
-                      <Badge variant="destructive">
+                      <Badge variant="destructive" className="text-xs">
                         <X className="w-3 h-3 mr-1" />
-                        Unpaid
+                        <span className="hidden sm:inline">Unpaid</span>
                       </Badge>
                     )}
                   </td>
-                  <td className="text-muted-foreground text-sm">
+                  <td className="text-muted-foreground text-sm hidden sm:table-cell">
                     {statement.paidDate || '-'}
                   </td>
                 </tr>
