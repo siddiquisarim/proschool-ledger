@@ -26,7 +26,8 @@ export interface AcademicClass {
   enrolledStudents: number;
   status: ClassStatus; // read_write: can enroll, read: reports only, closed: completely closed
   isActive: boolean;
-  subjectTeachers?: ClassSubjectTeacher[]; // Subject-based teacher assignments
+  teacherIds?: string[]; // Teacher IDs assigned to this class
+  subjectTeachers?: ClassSubjectTeacher[]; // Subject-based teacher assignments (legacy)
 }
 
 // Subject definition for the school
