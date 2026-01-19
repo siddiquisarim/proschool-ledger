@@ -20,12 +20,20 @@ export interface AcademicClass {
   isActive: boolean;
 }
 
+// Transport Areas/Blocks - new structure for area-based transport fees
+export interface TransportArea {
+  id: string;
+  name: string; // e.g., "Block 301", "Al Hidd Area"
+  fee: number; // Fee for this area
+  isActive: boolean;
+}
+
 export interface TransportLine {
   id: string;
   name: string;
+  areaIds: string[]; // Areas/blocks covered by this transport line
   startLocation: string;
   endLocation: string;
-  fee: number;
   isActive: boolean;
 }
 
@@ -46,6 +54,28 @@ export interface AcademicYearEnrollment {
   transferredCount: number;
 }
 
+// Fee type categorization
+export type FeeCategory = 'mandatory' | 'monthly' | 'optional';
+
+export interface FeeType {
+  id: string;
+  name: string;
+  amount: number;
+  category: FeeCategory;
+  levelIds?: string[]; // Which levels this fee applies to ('all' = all levels)
+  dueDay?: number; // For monthly fees
+  isActive: boolean;
+}
+
+// Predefined extra fees (admin-defined, cashier can add from list)
+export interface PredefinedExtraFee {
+  id: string;
+  name: string;
+  amount: number;
+  description?: string;
+  isActive: boolean;
+}
+
 export interface FeeDiscount {
   id: string;
   name: string;
@@ -56,6 +86,27 @@ export interface FeeDiscount {
   isActive: boolean;
 }
 
+// Global Guardian registry (unique guardians)
+export interface GlobalGuardian {
+  id: string;
+  serialNumber: string;
+  name: string;
+  mobile: string;
+  cpr?: string; // CPR for uniqueness
+  relationship: 'father' | 'mother' | 'guardian' | 'other';
+  homeAddress: string;
+  workAddress: string;
+  email?: string;
+  studentIds: string[]; // All students linked to this guardian
+}
+
+// Student-guardian link
+export interface StudentGuardianLink {
+  guardianId: string;
+  isPrimary: boolean;
+}
+
+// Legacy Guardian type for compatibility
 export interface Guardian {
   id: string;
   serialNumber: string;
@@ -121,4 +172,13 @@ export interface CustomFee {
   status: 'paid' | 'unpaid';
   createdAt: string;
   paidDate?: string;
+}
+
+// Applied discount for a student (supports multiple discounts)
+export interface AppliedStudentDiscount {
+  id: string;
+  studentId: string;
+  discountId: string;
+  academicYearId: string;
+  appliedDate: string;
 }

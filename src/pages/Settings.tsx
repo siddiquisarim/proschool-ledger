@@ -38,10 +38,11 @@ import {
   Users,
   Check,
   X,
+  MapPin,
 } from 'lucide-react';
 import { mockSettings, mockFeeStructures } from '@/data/mockData';
-import { mockLevels, mockAcademicClasses, mockTransportLines, mockAcademicYears, mockFeeDiscounts, mockAcademicYearEnrollments, mockFeeTypes } from '@/data/settingsData';
-import { Level, AcademicClass, TransportLine, FeeDiscount, ClassStatus } from '@/types/settings';
+import { mockLevels, mockAcademicClasses, mockTransportLines, mockTransportAreas, mockAcademicYears, mockFeeDiscounts, mockAcademicYearEnrollments, mockFeeTypes, mockPredefinedExtraFees } from '@/data/settingsData';
+import { Level, AcademicClass, TransportLine, TransportArea, FeeDiscount, ClassStatus, PredefinedExtraFee } from '@/types/settings';
 
 export function SettingsPage() {
   const { t } = useApp();
@@ -50,24 +51,32 @@ export function SettingsPage() {
   const [levels, setLevels] = useState(mockLevels);
   const [classes, setClasses] = useState(mockAcademicClasses);
   const [transportLines, setTransportLines] = useState(mockTransportLines);
+  const [transportAreas, setTransportAreas] = useState(mockTransportAreas);
   const [discounts, setDiscounts] = useState(mockFeeDiscounts);
+  const [predefinedExtraFees, setPredefinedExtraFees] = useState(mockPredefinedExtraFees);
   const [selectedAcademicYear, setSelectedAcademicYear] = useState(mockAcademicYears.find(y => y.isCurrent)?.id || '');
 
   // Dialog states
   const [isLevelDialogOpen, setIsLevelDialogOpen] = useState(false);
   const [isClassDialogOpen, setIsClassDialogOpen] = useState(false);
   const [isTransportDialogOpen, setIsTransportDialogOpen] = useState(false);
+  const [isAreaDialogOpen, setIsAreaDialogOpen] = useState(false);
   const [isDiscountDialogOpen, setIsDiscountDialogOpen] = useState(false);
+  const [isExtraFeeDialogOpen, setIsExtraFeeDialogOpen] = useState(false);
   const [editingLevel, setEditingLevel] = useState<Level | null>(null);
   const [editingClass, setEditingClass] = useState<AcademicClass | null>(null);
   const [editingTransport, setEditingTransport] = useState<TransportLine | null>(null);
+  const [editingArea, setEditingArea] = useState<TransportArea | null>(null);
   const [editingDiscount, setEditingDiscount] = useState<FeeDiscount | null>(null);
+  const [editingExtraFee, setEditingExtraFee] = useState<PredefinedExtraFee | null>(null);
 
   // Form states
   const [levelForm, setLevelForm] = useState({ name: '', order: 1 });
   const [classForm, setClassForm] = useState({ name: '', levelId: '', capacity: 25, maxStudents: 30, status: 'read_write' as ClassStatus });
-  const [transportForm, setTransportForm] = useState({ name: '', startLocation: '', endLocation: '', fee: 0 });
+  const [transportForm, setTransportForm] = useState({ name: '', startLocation: '', endLocation: '', areaIds: [] as string[] });
+  const [areaForm, setAreaForm] = useState({ name: '', fee: 0 });
   const [discountForm, setDiscountForm] = useState({ name: '', description: '', type: 'percentage' as 'percentage' | 'fixed', value: 0, applicableFees: [] as string[] });
+  const [extraFeeForm, setExtraFeeForm] = useState({ name: '', amount: 0, description: '' });
 
   const handleSettingChange = (key: keyof typeof settings, value: string | number) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -139,14 +148,40 @@ export function SettingsPage() {
     setClasses(classes.filter(c => c.id !== id));
   };
 
+  // Area handlers
+  const openAreaDialog = (area?: TransportArea) => {
+    if (area) {
+      setEditingArea(area);
+      setAreaForm({ name: area.name, fee: area.fee });
+    } else {
+      setEditingArea(null);
+      setAreaForm({ name: '', fee: 0 });
+    }
+    setIsAreaDialogOpen(true);
+  };
+
+  const saveArea = () => {
+    if (editingArea) {
+      setTransportAreas(transportAreas.map(a => a.id === editingArea.id ? { ...a, ...areaForm } : a));
+    } else {
+      const newArea: TransportArea = {
+        id: `area-${Date.now()}`,
+        ...areaForm,
+        isActive: true,
+      };
+      setTransportAreas([...transportAreas, newArea]);
+    }
+    setIsAreaDialogOpen(false);
+  };
+
   // Transport handlers
   const openTransportDialog = (line?: TransportLine) => {
     if (line) {
       setEditingTransport(line);
-      setTransportForm({ name: line.name, startLocation: line.startLocation, endLocation: line.endLocation, fee: line.fee });
+      setTransportForm({ name: line.name, startLocation: line.startLocation, endLocation: line.endLocation, areaIds: line.areaIds });
     } else {
       setEditingTransport(null);
-      setTransportForm({ name: '', startLocation: '', endLocation: '', fee: 0 });
+      setTransportForm({ name: '', startLocation: '', endLocation: '', areaIds: [] });
     }
     setIsTransportDialogOpen(true);
   };
@@ -191,6 +226,32 @@ export function SettingsPage() {
     setIsDiscountDialogOpen(false);
   };
 
+  // Extra Fee handlers
+  const openExtraFeeDialog = (fee?: PredefinedExtraFee) => {
+    if (fee) {
+      setEditingExtraFee(fee);
+      setExtraFeeForm({ name: fee.name, amount: fee.amount, description: fee.description || '' });
+    } else {
+      setEditingExtraFee(null);
+      setExtraFeeForm({ name: '', amount: 0, description: '' });
+    }
+    setIsExtraFeeDialogOpen(true);
+  };
+
+  const saveExtraFee = () => {
+    if (editingExtraFee) {
+      setPredefinedExtraFees(predefinedExtraFees.map(f => f.id === editingExtraFee.id ? { ...f, ...extraFeeForm } : f));
+    } else {
+      const newFee: PredefinedExtraFee = {
+        id: `extra-${Date.now()}`,
+        ...extraFeeForm,
+        isActive: true,
+      };
+      setPredefinedExtraFees([...predefinedExtraFees, newFee]);
+    }
+    setIsExtraFeeDialogOpen(false);
+  };
+
   // Get enrollment stats for selected academic year
   const getYearEnrollmentStats = () => {
     return mockAcademicYearEnrollments.filter(e => e.academicYearId === selectedAcademicYear);
@@ -205,6 +266,10 @@ export function SettingsPage() {
       case 'closed':
         return <Badge variant="destructive">Closed</Badge>;
     }
+  };
+
+  const getAreaNamesForLine = (areaIds: string[]) => {
+    return areaIds.map(id => transportAreas.find(a => a.id === id)?.name).filter(Boolean).join(', ');
   };
 
   return (
@@ -445,94 +510,188 @@ export function SettingsPage() {
           </div>
         </TabsContent>
 
-        {/* Transport */}
+        {/* Transport - Now with Areas */}
         <TabsContent value="transport">
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Transport Lines</h3>
-              <Button variant="enterprise" size="sm" onClick={() => openTransportDialog()}>
-                <Plus className="w-4 h-4" />Add Transport Line
-              </Button>
-            </div>
-            <table className="enterprise-table">
-              <thead>
-                <tr>
-                  <th>Route Name</th>
-                  <th>Start Location</th>
-                  <th>End Location</th>
-                  <th className="text-right">Fee (AED)</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {transportLines.map(line => (
-                  <tr key={line.id}>
-                    <td className="font-medium">{line.name}</td>
-                    <td>{line.startLocation}</td>
-                    <td>{line.endLocation}</td>
-                    <td className="text-right font-mono">{line.fee.toLocaleString()}</td>
-                    <td>
-                      <Switch 
-                        checked={line.isActive}
-                        onCheckedChange={(checked) => setTransportLines(transportLines.map(t => t.id === line.id ? { ...t, isActive: checked } : t))}
-                      />
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="xs" onClick={() => openTransportDialog(line)}>
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button variant="ghost" size="xs" className="text-destructive" onClick={() => setTransportLines(transportLines.filter(t => t.id !== line.id))}>
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
+          <div className="space-y-4">
+            {/* Areas/Blocks Section */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Transport Areas / Blocks</h3>
+                  <p className="text-sm text-muted-foreground">Define areas with transport fees. Students select area first, then available transport line.</p>
+                </div>
+                <Button variant="enterprise" size="sm" onClick={() => openAreaDialog()}>
+                  <Plus className="w-4 h-4" />Add Area
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {transportAreas.map(area => (
+                  <div key={area.id} className="flex items-center justify-between p-3 border rounded">
+                    <div className="flex items-center gap-3">
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                      <div>
+                        <span className="font-medium">{area.name}</span>
+                        <p className="text-sm text-accent font-mono">AED {area.fee}/month</p>
                       </div>
-                    </td>
-                  </tr>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Switch 
+                        checked={area.isActive}
+                        onCheckedChange={(checked) => setTransportAreas(transportAreas.map(a => a.id === area.id ? { ...a, isActive: checked } : a))}
+                      />
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openAreaDialog(area)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setTransportAreas(transportAreas.filter(a => a.id !== area.id))}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </Card>
-        </TabsContent>
+              </div>
+            </Card>
 
-        {/* Fee Structures */}
-        <TabsContent value="fees">
-          <Card>
-            <div className="data-card-header flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Fee Structures</h3>
-              <Button variant="enterprise" size="sm">Add Fee Type</Button>
-            </div>
-            <div className="overflow-x-auto">
+            {/* Transport Lines Section */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Transport Lines</h3>
+                  <p className="text-sm text-muted-foreground">Routes that cover multiple areas. Fee is determined by the student's selected area.</p>
+                </div>
+                <Button variant="enterprise" size="sm" onClick={() => openTransportDialog()}>
+                  <Plus className="w-4 h-4" />Add Transport Line
+                </Button>
+              </div>
               <table className="enterprise-table">
                 <thead>
                   <tr>
-                    <th>Fee Name</th>
-                    <th>Type</th>
-                    <th>Applicable Levels</th>
-                    <th>Due Day</th>
-                    <th className="text-right">Amount (AED)</th>
+                    <th>Route Name</th>
+                    <th>Start Location</th>
+                    <th>End Location</th>
+                    <th>Areas Covered</th>
+                    <th>Status</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {feeStructures.map((fee) => (
-                    <tr key={fee.id}>
-                      <td className="font-medium">{fee.name}</td>
+                  {transportLines.map(line => (
+                    <tr key={line.id}>
+                      <td className="font-medium">{line.name}</td>
+                      <td>{line.startLocation}</td>
+                      <td>{line.endLocation}</td>
                       <td>
-                        <span className={`status-badge ${fee.type === 'mandatory' ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'}`}>
-                          {fee.type}
-                        </span>
+                        <div className="flex flex-wrap gap-1">
+                          {line.areaIds.slice(0, 3).map(areaId => {
+                            const area = transportAreas.find(a => a.id === areaId);
+                            return area ? (
+                              <Badge key={areaId} variant="outline" className="text-xs">{area.name}</Badge>
+                            ) : null;
+                          })}
+                          {line.areaIds.length > 3 && (
+                            <Badge variant="secondary" className="text-xs">+{line.areaIds.length - 3} more</Badge>
+                          )}
+                        </div>
                       </td>
-                      <td>{fee.grade === 'all' ? 'All Levels' : fee.grade}</td>
-                      <td>{fee.dueDay ? `${fee.dueDay}th` : '-'}</td>
-                      <td className="text-right font-mono">{fee.amount.toLocaleString()}</td>
-                      <td><Button variant="ghost" size="xs">Edit</Button></td>
+                      <td>
+                        <Switch 
+                          checked={line.isActive}
+                          onCheckedChange={(checked) => setTransportLines(transportLines.map(t => t.id === line.id ? { ...t, isActive: checked } : t))}
+                        />
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="xs" onClick={() => openTransportDialog(line)}>
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button variant="ghost" size="xs" className="text-destructive" onClick={() => setTransportLines(transportLines.filter(t => t.id !== line.id))}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
-            </div>
-          </Card>
+            </Card>
+          </div>
+        </TabsContent>
+
+        {/* Fee Structures */}
+        <TabsContent value="fees">
+          <div className="space-y-4">
+            <Card>
+              <div className="data-card-header flex items-center justify-between">
+                <h3 className="text-lg font-semibold">Fee Structures</h3>
+                <Button variant="enterprise" size="sm">Add Fee Type</Button>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="enterprise-table">
+                  <thead>
+                    <tr>
+                      <th>Fee Name</th>
+                      <th>Category</th>
+                      <th>Applicable Levels</th>
+                      <th>Due Day</th>
+                      <th className="text-right">Amount (AED)</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {feeStructures.map((fee) => (
+                      <tr key={fee.id}>
+                        <td className="font-medium">{fee.name}</td>
+                        <td>
+                          <span className={`status-badge ${fee.type === 'mandatory' ? 'bg-primary/10 text-primary' : 'bg-secondary text-secondary-foreground'}`}>
+                            {fee.type}
+                          </span>
+                        </td>
+                        <td>{fee.grade === 'all' ? 'All Levels' : fee.grade}</td>
+                        <td>{fee.dueDay ? `${fee.dueDay}th` : '-'}</td>
+                        <td className="text-right font-mono">{fee.amount.toLocaleString()}</td>
+                        <td><Button variant="ghost" size="xs">Edit</Button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+
+            {/* Predefined Extra Fees */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold">Predefined Extra Fees</h3>
+                  <p className="text-sm text-muted-foreground">Cashiers can add these fees to student accounts. Define them here.</p>
+                </div>
+                <Button variant="enterprise" size="sm" onClick={() => openExtraFeeDialog()}>
+                  <Plus className="w-4 h-4" />Add Extra Fee
+                </Button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {predefinedExtraFees.map(fee => (
+                  <div key={fee.id} className="flex items-center justify-between p-3 border rounded">
+                    <div>
+                      <span className="font-medium">{fee.name}</span>
+                      <p className="text-sm text-muted-foreground">{fee.description}</p>
+                      <p className="text-sm text-accent font-mono">AED {fee.amount}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Switch 
+                        checked={fee.isActive}
+                        onCheckedChange={(checked) => setPredefinedExtraFees(predefinedExtraFees.map(f => f.id === fee.id ? { ...f, isActive: checked } : f))}
+                      />
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openExtraFeeDialog(fee)}>
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => setPredefinedExtraFees(predefinedExtraFees.filter(f => f.id !== fee.id))}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          </div>
         </TabsContent>
 
         {/* Discounts */}
@@ -668,6 +827,29 @@ export function SettingsPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Area Dialog */}
+      <Dialog open={isAreaDialogOpen} onOpenChange={setIsAreaDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingArea ? 'Edit Area' : 'Add Area'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Area/Block Name *</Label>
+              <Input value={areaForm.name} onChange={(e) => setAreaForm({ ...areaForm, name: e.target.value })} placeholder="e.g., Block 301-305" />
+            </div>
+            <div className="space-y-2">
+              <Label>Monthly Fee (AED) *</Label>
+              <Input type="number" value={areaForm.fee} onChange={(e) => setAreaForm({ ...areaForm, fee: Number(e.target.value) })} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAreaDialogOpen(false)}>Cancel</Button>
+            <Button variant="enterprise" onClick={saveArea} disabled={!areaForm.name}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Transport Dialog */}
       <Dialog open={isTransportDialogOpen} onOpenChange={setIsTransportDialogOpen}>
         <DialogContent>
@@ -688,13 +870,62 @@ export function SettingsPage() {
               <Input value={transportForm.endLocation} onChange={(e) => setTransportForm({ ...transportForm, endLocation: e.target.value })} placeholder="e.g., School Campus" />
             </div>
             <div className="space-y-2">
-              <Label>Fee (AED) *</Label>
-              <Input type="number" value={transportForm.fee} onChange={(e) => setTransportForm({ ...transportForm, fee: Number(e.target.value) })} />
+              <Label>Areas Covered *</Label>
+              <div className="grid grid-cols-2 gap-2 p-3 border rounded bg-muted/30 max-h-48 overflow-y-auto">
+                {transportAreas.filter(a => a.isActive).map(area => {
+                  const isChecked = transportForm.areaIds.includes(area.id);
+                  return (
+                    <label key={area.id} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-muted/50">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setTransportForm({ ...transportForm, areaIds: [...transportForm.areaIds, area.id] });
+                          } else {
+                            setTransportForm({ ...transportForm, areaIds: transportForm.areaIds.filter(id => id !== area.id) });
+                          }
+                        }}
+                        className="rounded border-border"
+                      />
+                      <span className="text-sm">{area.name}</span>
+                      <Badge variant="outline" className="text-xs ml-auto">AED {area.fee}</Badge>
+                    </label>
+                  );
+                })}
+              </div>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsTransportDialogOpen(false)}>Cancel</Button>
-            <Button variant="enterprise" onClick={saveTransport} disabled={!transportForm.name || !transportForm.startLocation || !transportForm.endLocation}>Save</Button>
+            <Button variant="enterprise" onClick={saveTransport} disabled={!transportForm.name || !transportForm.startLocation || !transportForm.endLocation || transportForm.areaIds.length === 0}>Save</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Extra Fee Dialog */}
+      <Dialog open={isExtraFeeDialogOpen} onOpenChange={setIsExtraFeeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingExtraFee ? 'Edit Extra Fee' : 'Add Extra Fee'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Fee Name *</Label>
+              <Input value={extraFeeForm.name} onChange={(e) => setExtraFeeForm({ ...extraFeeForm, name: e.target.value })} placeholder="e.g., Sports Equipment" />
+            </div>
+            <div className="space-y-2">
+              <Label>Amount (AED) *</Label>
+              <Input type="number" value={extraFeeForm.amount} onChange={(e) => setExtraFeeForm({ ...extraFeeForm, amount: Number(e.target.value) })} />
+            </div>
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Input value={extraFeeForm.description} onChange={(e) => setExtraFeeForm({ ...extraFeeForm, description: e.target.value })} placeholder="Optional description" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsExtraFeeDialogOpen(false)}>Cancel</Button>
+            <Button variant="enterprise" onClick={saveExtraFee} disabled={!extraFeeForm.name || extraFeeForm.amount <= 0}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -758,7 +989,7 @@ export function SettingsPage() {
                           className="rounded border-border"
                         />
                         <span className="text-sm">{fee.name}</span>
-                        <Badge variant="outline" className="text-xs ml-auto">{fee.type}</Badge>
+                        <Badge variant="outline" className="text-xs ml-auto">{fee.category}</Badge>
                       </label>
                     );
                   })}

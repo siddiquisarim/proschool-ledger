@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { mockLevels, mockTransportLines } from '@/data/settingsData';
+import { mockLevels, mockTransportAreas, getTransportLinesForArea, getTransportFeeForArea } from '@/data/settingsData';
 
 interface StudentInfoTabProps {
   formData: {
@@ -22,6 +23,7 @@ interface StudentInfoTabProps {
     levelId: string;
     address: string;
     returnAddress: string;
+    transportAreaId: string;
     transportLineId: string;
   };
   onChange: (field: string, value: string) => void;
@@ -29,7 +31,23 @@ interface StudentInfoTabProps {
 
 export function StudentInfoTab({ formData, onChange }: StudentInfoTabProps) {
   const activeLevels = mockLevels.filter(l => l.isActive);
-  const activeTransportLines = mockTransportLines.filter(t => t.isActive);
+  const activeAreas = mockTransportAreas.filter(a => a.isActive);
+  
+  // Get transport lines for selected area
+  const availableTransportLines = formData.transportAreaId 
+    ? getTransportLinesForArea(formData.transportAreaId)
+    : [];
+  
+  // Get fee for selected area
+  const transportFee = formData.transportAreaId 
+    ? getTransportFeeForArea(formData.transportAreaId)
+    : 0;
+
+  const handleAreaChange = (areaId: string) => {
+    onChange('transportAreaId', areaId);
+    // Reset transport line when area changes
+    onChange('transportLineId', '');
+  };
 
   return (
     <div className="space-y-6">
@@ -138,21 +156,53 @@ export function StudentInfoTab({ formData, onChange }: StudentInfoTabProps) {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Transport Line</Label>
-        <Select value={formData.transportLineId} onValueChange={(v) => onChange('transportLineId', v)}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select transport line (optional)" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">No Transport</SelectItem>
-            {activeTransportLines.map(line => (
-              <SelectItem key={line.id} value={line.id}>
-                {line.name} ({line.startLocation} → {line.endLocation}) - AED {line.fee}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      {/* Transport Selection - Area first, then line */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label>Transport Area/Block</Label>
+          <Select value={formData.transportAreaId || ''} onValueChange={handleAreaChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select area (optional)" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">No Transport</SelectItem>
+              {activeAreas.map(area => (
+                <SelectItem key={area.id} value={area.id}>
+                  {area.name} - AED {area.fee}/month
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Transport Line</Label>
+          <Select 
+            value={formData.transportLineId || ''} 
+            onValueChange={(v) => onChange('transportLineId', v)}
+            disabled={!formData.transportAreaId || formData.transportAreaId === 'none'}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={formData.transportAreaId ? "Select transport line" : "Select area first"} />
+            </SelectTrigger>
+            <SelectContent>
+              {availableTransportLines.map(line => (
+                <SelectItem key={line.id} value={line.id}>
+                  {line.name} ({line.startLocation} → {line.endLocation})
+                </SelectItem>
+              ))}
+              {availableTransportLines.length === 0 && formData.transportAreaId && (
+                <div className="p-2 text-sm text-muted-foreground text-center">
+                  No transport lines for this area
+                </div>
+              )}
+            </SelectContent>
+          </Select>
+          {formData.transportAreaId && formData.transportAreaId !== 'none' && (
+            <p className="text-xs text-muted-foreground">
+              Transport fee: AED {transportFee}/month
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
