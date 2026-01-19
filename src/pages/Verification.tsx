@@ -48,12 +48,25 @@ export function VerificationPage() {
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'finalize' | 'deposit'>('approve');
 
+  const isCashier = currentUser?.role === 'cashier';
   const isSupervisor = currentUser?.role === 'supervisor' || currentUser?.role === 'admin';
   const isAccountant = currentUser?.role === 'accountant' || currentUser?.role === 'admin';
+  const isAdmin = currentUser?.role === 'admin';
 
-  const pendingSupervisor = mockClosures.filter(c => c.status === 'pending');
-  const pendingAccountant = mockClosures.filter(c => c.status === 'supervisor_approved');
-  const finalized = mockClosures.filter(c => c.status === 'finalized' || c.status === 'deposited');
+  // Role-based filtering
+  const userClosures = mockClosures.filter(c => {
+    // Admin sees all
+    if (isAdmin) return true;
+    // Cashier sees only their own submissions
+    if (isCashier) return c.cashierId === currentUser?.id;
+    // Supervisor and Accountant see all for approval
+    if (isSupervisor || isAccountant) return true;
+    return false;
+  });
+
+  const pendingSupervisor = userClosures.filter(c => c.status === 'pending');
+  const pendingAccountant = userClosures.filter(c => c.status === 'supervisor_approved');
+  const finalized = userClosures.filter(c => c.status === 'finalized' || c.status === 'deposited');
 
   // Get payments for a specific cashier on a specific date
   const getClosurePayments = (cashierId: string, date: string): Payment[] => {

@@ -41,8 +41,9 @@ import {
   MapPin,
 } from 'lucide-react';
 import { mockSettings, mockFeeStructures } from '@/data/mockData';
-import { mockLevels, mockAcademicClasses, mockTransportLines, mockTransportAreas, mockAcademicYears, mockFeeDiscounts, mockAcademicYearEnrollments, mockFeeTypes, mockPredefinedExtraFees } from '@/data/settingsData';
-import { Level, AcademicClass, TransportLine, TransportArea, FeeDiscount, ClassStatus, PredefinedExtraFee } from '@/types/settings';
+import { mockLevels, mockAcademicClasses, mockTransportLines, mockTransportAreas, mockAcademicYears, mockFeeDiscounts, mockAcademicYearEnrollments, mockFeeTypes, mockPredefinedExtraFees, mockSubjects } from '@/data/settingsData';
+import { Level, AcademicClass, TransportLine, TransportArea, FeeDiscount, ClassStatus, PredefinedExtraFee, ClassSubjectTeacher, Subject } from '@/types/settings';
+import { mockTeachers } from '@/data/mockData';
 
 export function SettingsPage() {
   const { t } = useApp();
@@ -54,6 +55,7 @@ export function SettingsPage() {
   const [transportAreas, setTransportAreas] = useState(mockTransportAreas);
   const [discounts, setDiscounts] = useState(mockFeeDiscounts);
   const [predefinedExtraFees, setPredefinedExtraFees] = useState(mockPredefinedExtraFees);
+  const [subjects, setSubjects] = useState(mockSubjects);
   const [selectedAcademicYear, setSelectedAcademicYear] = useState(mockAcademicYears.find(y => y.isCurrent)?.id || '');
 
   // Dialog states
@@ -63,12 +65,14 @@ export function SettingsPage() {
   const [isAreaDialogOpen, setIsAreaDialogOpen] = useState(false);
   const [isDiscountDialogOpen, setIsDiscountDialogOpen] = useState(false);
   const [isExtraFeeDialogOpen, setIsExtraFeeDialogOpen] = useState(false);
+  const [isTeacherAssignDialogOpen, setIsTeacherAssignDialogOpen] = useState(false);
   const [editingLevel, setEditingLevel] = useState<Level | null>(null);
   const [editingClass, setEditingClass] = useState<AcademicClass | null>(null);
   const [editingTransport, setEditingTransport] = useState<TransportLine | null>(null);
   const [editingArea, setEditingArea] = useState<TransportArea | null>(null);
   const [editingDiscount, setEditingDiscount] = useState<FeeDiscount | null>(null);
   const [editingExtraFee, setEditingExtraFee] = useState<PredefinedExtraFee | null>(null);
+  const [selectedClassForTeachers, setSelectedClassForTeachers] = useState<AcademicClass | null>(null);
 
   // Form states
   const [levelForm, setLevelForm] = useState({ name: '', order: 1 });
@@ -250,6 +254,48 @@ export function SettingsPage() {
       setPredefinedExtraFees([...predefinedExtraFees, newFee]);
     }
     setIsExtraFeeDialogOpen(false);
+  };
+
+  // Teacher Assignment handlers
+  const openTeacherAssignDialog = (cls: AcademicClass) => {
+    setSelectedClassForTeachers(cls);
+    setIsTeacherAssignDialogOpen(true);
+  };
+
+  const addSubjectTeacher = (classId: string, subjectId: string, teacherId: string) => {
+    const subject = subjects.find(s => s.id === subjectId);
+    const teacher = mockTeachers.find(t => t.id === teacherId);
+    if (!subject || !teacher) return;
+
+    setClasses(classes.map(c => {
+      if (c.id === classId) {
+        const existing = c.subjectTeachers || [];
+        // Check if subject already has a teacher
+        const filtered = existing.filter(st => st.subjectId !== subjectId);
+        return {
+          ...c,
+          subjectTeachers: [...filtered, {
+            subjectId,
+            subjectName: subject.name,
+            teacherId,
+            teacherName: `${teacher.firstName} ${teacher.lastName}`,
+          }],
+        };
+      }
+      return c;
+    }));
+  };
+
+  const removeSubjectTeacher = (classId: string, subjectId: string) => {
+    setClasses(classes.map(c => {
+      if (c.id === classId) {
+        return {
+          ...c,
+          subjectTeachers: (c.subjectTeachers || []).filter(st => st.subjectId !== subjectId),
+        };
+      }
+      return c;
+    }));
   };
 
   // Get enrollment stats for selected academic year
@@ -473,6 +519,7 @@ export function SettingsPage() {
                     <th>Level</th>
                     <th className="text-center">Max Students</th>
                     <th className="text-center">Enrolled</th>
+                    <th className="text-center">Teachers</th>
                     <th>Status</th>
                     <th>Actions</th>
                   </tr>
@@ -489,6 +536,12 @@ export function SettingsPage() {
                           <span className={cls.enrolledStudents >= cls.maxStudents ? 'text-destructive font-medium' : ''}>
                             {cls.enrolledStudents}
                           </span>
+                        </td>
+                        <td className="text-center">
+                          <Button variant="ghost" size="xs" onClick={() => openTeacherAssignDialog(cls)}>
+                            <Users className="w-4 h-4 mr-1" />
+                            {cls.subjectTeachers?.length || 0}
+                          </Button>
                         </td>
                         <td>{getClassStatusBadge(cls.status)}</td>
                         <td>

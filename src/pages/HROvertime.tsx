@@ -44,7 +44,16 @@ export function HROvertimePage() {
   const canApprove = isAdmin || isAccountant;
   const canConfirm = isSupervisor || isAdmin;
 
-  const filteredRequests = overtimeRequests.filter(req => {
+  // Role-based filtering: users see only their own records
+  const userRecords = overtimeRequests.filter(req => {
+    // Admin, Supervisor, Accountant see all (for approval purposes)
+    if (isAdmin || isSupervisor || isAccountant) return true;
+    // Other users see only their own submissions
+    const employee = mockEmployees.find(e => e.id === req.employeeId);
+    return employee?.id === currentUser?.id;
+  });
+
+  const filteredRequests = userRecords.filter(req => {
     if (activeTab === 'all') return true;
     if (activeTab === 'payroll') return req.addedToPayroll;
     return req.status === activeTab;

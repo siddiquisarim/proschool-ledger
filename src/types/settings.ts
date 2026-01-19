@@ -9,6 +9,14 @@ export interface Level {
 
 export type ClassStatus = 'read_write' | 'read' | 'closed';
 
+// Subject taught by a teacher in a class
+export interface ClassSubjectTeacher {
+  subjectId: string;
+  subjectName: string;
+  teacherId: string;
+  teacherName: string;
+}
+
 export interface AcademicClass {
   id: string;
   name: string;
@@ -18,6 +26,26 @@ export interface AcademicClass {
   enrolledStudents: number;
   status: ClassStatus; // read_write: can enroll, read: reports only, closed: completely closed
   isActive: boolean;
+  subjectTeachers?: ClassSubjectTeacher[]; // Subject-based teacher assignments
+}
+
+// Subject definition for the school
+export interface Subject {
+  id: string;
+  name: string;
+  code: string;
+  isActive: boolean;
+}
+
+// ID Card customization settings
+export interface IDCardSettings {
+  primaryColor: string;
+  secondaryColor: string;
+  logoPosition: 'left' | 'center' | 'right';
+  showLogo: boolean;
+  backgroundColor: string;
+  textColor: string;
+  accentColor: string;
 }
 
 // Transport Areas/Blocks - new structure for area-based transport fees

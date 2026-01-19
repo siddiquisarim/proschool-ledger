@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -9,20 +11,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Printer, Download, User } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Printer, Download, User, Settings, Palette } from 'lucide-react';
 import { mockStudents, mockSettings } from '@/data/mockData';
+import { defaultIDCardSettings } from '@/data/settingsData';
+import { IDCardSettings } from '@/types/settings';
 import { cn } from '@/lib/utils';
 
 export function IDCardsPage() {
-  const { t, isRTL } = useApp();
+  const { t, isRTL, currentUser } = useApp();
   const [selectedStudentId, setSelectedStudentId] = useState<string>('');
   const [gradeFilter, setGradeFilter] = useState<string>('all');
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [cardSettings, setCardSettings] = useState<IDCardSettings>(defaultIDCardSettings);
 
+  const isAdmin = currentUser?.role === 'admin';
   const grades = [...new Set(mockStudents.map(s => s.grade))].sort();
   const filteredStudents = mockStudents.filter(s => 
     s.status === 'active' && (gradeFilter === 'all' || s.grade === gradeFilter)
   );
   const selectedStudent = mockStudents.find(s => s.id === selectedStudentId);
+
+  const handleSettingChange = (key: keyof IDCardSettings, value: string | boolean) => {
+    setCardSettings(prev => ({ ...prev, [key]: value }));
+  };
 
   return (
     <div className="space-y-4 animate-fade-in">
@@ -34,6 +54,12 @@ export function IDCardsPage() {
             Generate and print student ID cards
           </p>
         </div>
+        {isAdmin && (
+          <Button variant="outline" onClick={() => setShowSettingsDialog(true)}>
+            <Settings className="w-4 h-4" />
+            Card Settings
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -110,7 +136,12 @@ export function IDCardsPage() {
 
             {selectedStudent ? (
               <div className="flex justify-center">
-                <IDCardPreview student={selectedStudent} settings={mockSettings} isRTL={isRTL} />
+                <IDCardPreview 
+                  student={selectedStudent} 
+                  settings={mockSettings} 
+                  cardSettings={cardSettings}
+                  isRTL={isRTL} 
+                />
               </div>
             ) : (
               <div className="h-[280px] flex items-center justify-center bg-muted/30 rounded border-2 border-dashed border-border">
@@ -132,6 +163,124 @@ export function IDCardsPage() {
           </Card>
         </div>
       </div>
+
+      {/* Admin Settings Dialog */}
+      <Dialog open={showSettingsDialog} onOpenChange={setShowSettingsDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Palette className="w-5 h-5" />
+              ID Card Settings
+            </DialogTitle>
+          </DialogHeader>
+          <Tabs defaultValue="colors" className="mt-4">
+            <TabsList className="w-full">
+              <TabsTrigger value="colors" className="flex-1">Colors</TabsTrigger>
+              <TabsTrigger value="layout" className="flex-1">Layout</TabsTrigger>
+            </TabsList>
+            <TabsContent value="colors" className="space-y-4 mt-4">
+              <div className="space-y-2">
+                <Label>Primary Color (Header/Background)</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="color" 
+                    value={cardSettings.primaryColor}
+                    onChange={(e) => handleSettingChange('primaryColor', e.target.value)}
+                    className="w-12 h-9 p-1 cursor-pointer"
+                  />
+                  <Input 
+                    value={cardSettings.primaryColor}
+                    onChange={(e) => handleSettingChange('primaryColor', e.target.value)}
+                    className="flex-1 font-mono"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Secondary Color (Gradients)</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="color" 
+                    value={cardSettings.secondaryColor}
+                    onChange={(e) => handleSettingChange('secondaryColor', e.target.value)}
+                    className="w-12 h-9 p-1 cursor-pointer"
+                  />
+                  <Input 
+                    value={cardSettings.secondaryColor}
+                    onChange={(e) => handleSettingChange('secondaryColor', e.target.value)}
+                    className="flex-1 font-mono"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Accent Color (Highlights)</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="color" 
+                    value={cardSettings.accentColor}
+                    onChange={(e) => handleSettingChange('accentColor', e.target.value)}
+                    className="w-12 h-9 p-1 cursor-pointer"
+                  />
+                  <Input 
+                    value={cardSettings.accentColor}
+                    onChange={(e) => handleSettingChange('accentColor', e.target.value)}
+                    className="flex-1 font-mono"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>Text Color</Label>
+                <div className="flex gap-2">
+                  <Input 
+                    type="color" 
+                    value={cardSettings.textColor}
+                    onChange={(e) => handleSettingChange('textColor', e.target.value)}
+                    className="w-12 h-9 p-1 cursor-pointer"
+                  />
+                  <Input 
+                    value={cardSettings.textColor}
+                    onChange={(e) => handleSettingChange('textColor', e.target.value)}
+                    className="flex-1 font-mono"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+            <TabsContent value="layout" className="space-y-4 mt-4">
+              <div className="flex items-center justify-between">
+                <Label>Show School Logo</Label>
+                <Switch 
+                  checked={cardSettings.showLogo}
+                  onCheckedChange={(checked) => handleSettingChange('showLogo', checked)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Logo Position</Label>
+                <Select 
+                  value={cardSettings.logoPosition} 
+                  onValueChange={(v) => handleSettingChange('logoPosition', v)}
+                  disabled={!cardSettings.showLogo}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="left">Left</SelectItem>
+                    <SelectItem value="center">Center</SelectItem>
+                    <SelectItem value="right">Right</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </TabsContent>
+          </Tabs>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setCardSettings(defaultIDCardSettings)}>
+              Reset to Default
+            </Button>
+            <Button onClick={() => setShowSettingsDialog(false)}>
+              Save Settings
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -139,38 +288,72 @@ export function IDCardsPage() {
 interface IDCardPreviewProps {
   student: typeof mockStudents[0];
   settings: typeof mockSettings;
+  cardSettings: IDCardSettings;
   isRTL: boolean;
 }
 
-function IDCardPreview({ student, settings, isRTL }: IDCardPreviewProps) {
+function IDCardPreview({ student, settings, cardSettings, isRTL }: IDCardPreviewProps) {
   return (
     <div 
-      className="w-[320px] h-[200px] bg-gradient-to-br from-navy to-navy-dark rounded-lg shadow-lg overflow-hidden text-primary-foreground relative"
-      style={{ fontFamily: 'IBM Plex Sans, sans-serif' }}
+      className="w-[320px] h-[200px] rounded-lg shadow-lg overflow-hidden relative"
+      style={{ 
+        background: `linear-gradient(135deg, ${cardSettings.primaryColor}, ${cardSettings.secondaryColor})`,
+        color: cardSettings.textColor,
+        fontFamily: 'IBM Plex Sans, sans-serif' 
+      }}
     >
       {/* Header */}
-      <div className="bg-accent/20 px-4 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary-foreground/20 rounded flex items-center justify-center">
-            <span className="text-xs font-bold">PS</span>
-          </div>
-          <div>
-            <p className="text-xs font-semibold">{settings.schoolName}</p>
-            {settings.schoolNameArabic && (
-              <p className="text-xxs opacity-80" dir="rtl">{settings.schoolNameArabic}</p>
-            )}
-          </div>
+      <div 
+        className="px-4 py-2 flex items-center justify-between"
+        style={{ backgroundColor: `${cardSettings.accentColor}33` }}
+      >
+        <div className={cn(
+          "flex items-center gap-2",
+          cardSettings.logoPosition === 'right' && "flex-row-reverse",
+          cardSettings.logoPosition === 'center' && "justify-center w-full"
+        )}>
+          {cardSettings.showLogo && (
+            <div 
+              className="w-8 h-8 rounded flex items-center justify-center"
+              style={{ backgroundColor: `${cardSettings.textColor}33` }}
+            >
+              <span className="text-xs font-bold">PS</span>
+            </div>
+          )}
+          {cardSettings.logoPosition !== 'center' && (
+            <div>
+              <p className="text-xs font-semibold">{settings.schoolName}</p>
+              {settings.schoolNameArabic && (
+                <p className="text-xxs opacity-80" dir="rtl">{settings.schoolNameArabic}</p>
+              )}
+            </div>
+          )}
         </div>
-        <div className="text-right">
-          <p className="text-xxs opacity-70">Academic Year</p>
-          <p className="text-xs font-medium">{settings.schoolYear}</p>
-        </div>
+        {cardSettings.logoPosition !== 'center' && (
+          <div className="text-right">
+            <p className="text-xxs opacity-70">Academic Year</p>
+            <p className="text-xs font-medium">{settings.schoolYear}</p>
+          </div>
+        )}
       </div>
+
+      {/* Center header for centered logo */}
+      {cardSettings.logoPosition === 'center' && (
+        <div className="px-4 -mt-1 text-center">
+          <p className="text-xs font-semibold">{settings.schoolName}</p>
+          {settings.schoolNameArabic && (
+            <p className="text-xxs opacity-80" dir="rtl">{settings.schoolNameArabic}</p>
+          )}
+        </div>
+      )}
 
       {/* Body */}
       <div className="p-4 flex gap-4">
         {/* Photo */}
-        <div className="w-20 h-24 bg-primary-foreground/10 rounded flex items-center justify-center shrink-0">
+        <div 
+          className="w-20 h-24 rounded flex items-center justify-center shrink-0"
+          style={{ backgroundColor: `${cardSettings.textColor}1a` }}
+        >
           <User className="w-10 h-10 opacity-50" />
         </div>
 
@@ -200,10 +383,16 @@ function IDCardPreview({ student, settings, isRTL }: IDCardPreviewProps) {
       </div>
 
       {/* Footer */}
-      <div className="absolute bottom-0 left-0 right-0 bg-primary-foreground/10 px-4 py-1.5">
+      <div 
+        className="absolute bottom-0 left-0 right-0 px-4 py-1.5"
+        style={{ backgroundColor: `${cardSettings.textColor}1a` }}
+      >
         <div className="flex justify-between items-center text-xxs">
           <span className="opacity-70">Valid for academic year {settings.schoolYear}</span>
-          <div className="w-12 h-4 bg-primary-foreground/20 rounded" /> {/* Barcode placeholder */}
+          <div 
+            className="w-12 h-4 rounded"
+            style={{ backgroundColor: `${cardSettings.textColor}33` }}
+          /> {/* Barcode placeholder */}
         </div>
       </div>
     </div>
