@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -17,20 +17,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Edit, Trash2, Users, Search } from 'lucide-react';
-import { RelatedStudent } from '@/types/settings';
+import { Plus, Edit, Trash2, Users, Search, Link, AlertCircle } from 'lucide-react';
+import { RelatedStudent, Guardian } from '@/types/settings';
 import { mockStudents } from '@/data/mockData';
+import { findRelatedStudentsByGuardian, mockGlobalGuardians } from '@/data/settingsData';
+import { Badge } from '@/components/ui/badge';
 
 interface RelatedStudentsTabProps {
   relatedStudents: RelatedStudent[];
   onRelatedStudentsChange: (students: RelatedStudent[]) => void;
   currentStudentId?: string;
+  guardians?: Guardian[];
 }
 
 export function RelatedStudentsTab({ 
   relatedStudents, 
   onRelatedStudentsChange, 
-  currentStudentId 
+  currentStudentId,
+  guardians = [],
 }: RelatedStudentsTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRelation, setEditingRelation] = useState<RelatedStudent | null>(null);
@@ -40,6 +44,33 @@ export function RelatedStudentsTab({
     relationship: 'sibling',
     notes: '',
   });
+
+  // Auto-detect related students by common guardians
+  const autoDetectedStudents = useMemo(() => {
+    if (!currentStudentId) return [];
+    
+    // Use the helper function to find students with common guardians
+    const relatedIds = findRelatedStudentsByGuardian(currentStudentId);
+    
+    // Also check local guardians (for new students not yet in global registry)
+    const localGuardianMobiles = guardians.map(g => g.mobile);
+    
+    // Find students who share guardians with same mobile numbers
+    mockGlobalGuardians.forEach(globalGuardian => {
+      if (localGuardianMobiles.includes(globalGuardian.mobile)) {
+        globalGuardian.studentIds.forEach(id => {
+          if (id !== currentStudentId && !relatedIds.includes(id)) {
+            relatedIds.push(id);
+          }
+        });
+      }
+    });
+    
+    return relatedIds
+      .filter(id => !relatedStudents.some(r => r.studentId === id))
+      .map(id => mockStudents.find(s => s.id === id || s.studentId === id))
+      .filter(Boolean);
+  }, [currentStudentId, guardians, relatedStudents]);
 
   // Filter out current student and already related students
   const availableStudents = mockStudents.filter(s => 
@@ -96,12 +127,61 @@ export function RelatedStudentsTab({
     onRelatedStudentsChange(relatedStudents.filter(r => r.id !== relationId));
   };
 
+  const handleLinkAutoDetected = (studentId: string) => {
+    const newRelation: RelatedStudent = {
+      id: `related-${Date.now()}`,
+      studentId,
+      relationship: 'sibling',
+      notes: 'Auto-detected via common guardian',
+    };
+    onRelatedStudentsChange([...relatedStudents, newRelation]);
+  };
+
   const getStudentDetails = (studentId: string) => {
-    return mockStudents.find(s => s.id === studentId);
+    return mockStudents.find(s => s.id === studentId || s.studentId === studentId);
   };
 
   return (
     <div className="space-y-4">
+      {/* Auto-detected related students */}
+      {autoDetectedStudents.length > 0 && (
+        <Card className="p-4 bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+          <div className="flex items-center gap-2 mb-3">
+            <AlertCircle className="w-5 h-5 text-blue-600" />
+            <h4 className="font-medium text-blue-800 dark:text-blue-200">Auto-detected Related Students</h4>
+            <Badge variant="secondary" className="text-xs">
+              Common Guardians
+            </Badge>
+          </div>
+          <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
+            These students share common guardians with this student. Click to link them.
+          </p>
+          <div className="space-y-2">
+            {autoDetectedStudents.map((student: any) => (
+              <div key={student.id} className="flex items-center justify-between p-3 bg-white dark:bg-background rounded border">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                    <Users className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{student.firstName} {student.lastName}</p>
+                    <p className="text-xs text-muted-foreground">{student.studentId} • {student.grade}</p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleLinkAutoDetected(student.id)}
+                >
+                  <Link className="w-4 h-4" />
+                  Link as Sibling
+                </Button>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       <div className="flex items-center justify-between">
         <h3 className="font-medium">Related Students</h3>
         <Dialog open={isDialogOpen} onOpenChange={(open) => {
@@ -192,7 +272,7 @@ export function RelatedStudentsTab({
         <Card className="p-8 text-center text-muted-foreground">
           <Users className="w-8 h-8 mx-auto mb-2 opacity-50" />
           <p>No related students linked.</p>
-          <p className="text-sm">Click "Add Related Student" to link siblings or relatives.</p>
+          <p className="text-sm">Related students are auto-detected based on shared guardians, or click "Add Related Student" to link manually.</p>
         </Card>
       ) : (
         <div className="space-y-3">
