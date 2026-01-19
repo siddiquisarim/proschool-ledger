@@ -60,9 +60,9 @@ export function AcademicFeesTab({
   const classesForLevel = mockAcademicClasses.filter(c => c.levelId === levelId && c.status === 'read_write');
   const readOnlyClasses = mockAcademicClasses.filter(c => c.levelId === levelId && c.status === 'read');
   const activeDiscounts = mockFeeDiscounts.filter(d => d.isActive);
-  const mandatoryFees = mockFeeTypes.filter(f => f.type === 'mandatory');
-  const optionalFees = mockFeeTypes.filter(f => f.type === 'optional');
-  const monthlyFees = mockFeeTypes.filter(f => f.type === 'monthly');
+  const mandatoryFees = mockFeeTypes.filter(f => f.category === 'mandatory');
+  const optionalFees = mockFeeTypes.filter(f => f.category === 'optional');
+  const monthlyFees = mockFeeTypes.filter(f => f.category === 'monthly');
 
   const handleFeeSelect = (feeId: string, checked: boolean) => {
     if (checked) {

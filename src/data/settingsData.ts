@@ -1,4 +1,4 @@
-import { Level, AcademicClass, TransportLine, AcademicYear, FeeDiscount, AcademicYearEnrollment } from '@/types/settings';
+import { Level, AcademicClass, TransportLine, TransportArea, AcademicYear, FeeDiscount, AcademicYearEnrollment, FeeType, PredefinedExtraFee, GlobalGuardian } from '@/types/settings';
 
 export const mockLevels: Level[] = [
   { id: 'level-1', name: 'Level 1', order: 1, isActive: true },
@@ -27,12 +27,25 @@ export const mockAcademicClasses: AcademicClass[] = [
   { id: 'class-g2-b', name: 'Grade 2-B', levelId: 'level-5', capacity: 30, maxStudents: 35, enrolledStudents: 29, status: 'read_write', isActive: true },
 ];
 
+// Transport Areas - fees are per area, not per line
+export const mockTransportAreas: TransportArea[] = [
+  { id: 'area-1', name: 'Block 301-305', fee: 450, isActive: true },
+  { id: 'area-2', name: 'Block 306-310', fee: 450, isActive: true },
+  { id: 'area-3', name: 'Al Hidd', fee: 500, isActive: true },
+  { id: 'area-4', name: 'Muharraq', fee: 500, isActive: true },
+  { id: 'area-5', name: 'Riffa', fee: 600, isActive: true },
+  { id: 'area-6', name: 'Isa Town', fee: 550, isActive: true },
+  { id: 'area-7', name: 'Hamad Town', fee: 650, isActive: true },
+  { id: 'area-8', name: 'Saar', fee: 550, isActive: true },
+  { id: 'area-9', name: 'Budaiya', fee: 600, isActive: true },
+];
+
+// Transport lines now cover multiple areas
 export const mockTransportLines: TransportLine[] = [
-  { id: 'trans-1', name: 'Route A', startLocation: 'Al Hidd', endLocation: 'School Campus', fee: 500, isActive: true },
-  { id: 'trans-2', name: 'Route B', startLocation: 'Muharraq', endLocation: 'School Campus', fee: 450, isActive: true },
-  { id: 'trans-3', name: 'Route C', startLocation: 'Riffa', endLocation: 'School Campus', fee: 600, isActive: true },
-  { id: 'trans-4', name: 'Route D', startLocation: 'Isa Town', endLocation: 'School Campus', fee: 550, isActive: true },
-  { id: 'trans-5', name: 'Route E', startLocation: 'Hamad Town', endLocation: 'School Campus', fee: 650, isActive: true },
+  { id: 'trans-1', name: 'Route A - East', areaIds: ['area-3', 'area-4'], startLocation: 'Al Hidd', endLocation: 'School Campus', isActive: true },
+  { id: 'trans-2', name: 'Route B - Central', areaIds: ['area-1', 'area-2'], startLocation: 'Block 301', endLocation: 'School Campus', isActive: true },
+  { id: 'trans-3', name: 'Route C - South', areaIds: ['area-5', 'area-6'], startLocation: 'Riffa', endLocation: 'School Campus', isActive: true },
+  { id: 'trans-4', name: 'Route D - West', areaIds: ['area-7', 'area-8', 'area-9'], startLocation: 'Hamad Town', endLocation: 'School Campus', isActive: true },
 ];
 
 export const mockAcademicYears: AcademicYear[] = [
@@ -95,18 +108,121 @@ export const mockFeeDiscounts: FeeDiscount[] = [
     description: 'For early registration',
     type: 'fixed', 
     value: 200, 
-    applicableFees: ['fee-registration'],
+    applicableFees: [],
     isActive: true 
   },
 ];
 
-// Fee types for the school
-export const mockFeeTypes = [
-  { id: 'fee-registration', name: 'Registration Fee', amount: 500, type: 'mandatory' as const },
-  { id: 'fee-tuition', name: 'Tuition Fee', amount: 3000, type: 'mandatory' as const },
-  { id: 'fee-books', name: 'Books & Materials', amount: 800, type: 'mandatory' as const },
-  { id: 'fee-uniform', name: 'Uniform Fee', amount: 300, type: 'mandatory' as const },
-  { id: 'fee-monthly', name: 'Monthly Fee', amount: 250, type: 'monthly' as const },
-  { id: 'fee-transport', name: 'Transport Fee', amount: 0, type: 'optional' as const },
-  { id: 'fee-activities', name: 'Activities Fee', amount: 150, type: 'optional' as const },
+// Fee types with proper categorization
+export const mockFeeTypes: FeeType[] = [
+  { id: 'fee-registration', name: 'Registration Fee', amount: 500, category: 'mandatory', isActive: true },
+  { id: 'fee-tuition', name: 'Tuition Fee', amount: 3000, category: 'mandatory', isActive: true },
+  { id: 'fee-books', name: 'Books & Materials', amount: 800, category: 'mandatory', isActive: true },
+  { id: 'fee-uniform', name: 'Uniform Fee', amount: 300, category: 'mandatory', isActive: true },
+  { id: 'fee-monthly', name: 'Monthly Fee', amount: 250, category: 'monthly', dueDay: 10, isActive: true },
+  { id: 'fee-transport', name: 'Transport Fee', amount: 0, category: 'optional', isActive: true }, // Amount from area
+  { id: 'fee-activities', name: 'Activities Fee', amount: 150, category: 'optional', isActive: true },
 ];
+
+// Predefined extra fees (admin-defined, cashier selects from list)
+export const mockPredefinedExtraFees: PredefinedExtraFee[] = [
+  { id: 'extra-sports', name: 'Sports Equipment', amount: 200, description: 'Sports equipment and gear', isActive: true },
+  { id: 'extra-lab', name: 'Lab Fee', amount: 150, description: 'Science lab materials', isActive: true },
+  { id: 'extra-trip', name: 'Field Trip', amount: 100, description: 'Educational field trip', isActive: true },
+  { id: 'extra-photo', name: 'Photo Package', amount: 50, description: 'School photo package', isActive: true },
+  { id: 'extra-yearbook', name: 'Yearbook', amount: 75, description: 'Annual yearbook', isActive: true },
+  { id: 'extra-certificate', name: 'Certificate Fee', amount: 25, description: 'Certificate and document processing', isActive: true },
+];
+
+// Global guardian registry (unique guardians across all students)
+export const mockGlobalGuardians: GlobalGuardian[] = [
+  {
+    id: 'guardian-1',
+    serialNumber: 'G001',
+    name: 'Ahmed Ali Mohammed',
+    mobile: '+973-3456-7890',
+    cpr: '780512345',
+    relationship: 'father',
+    homeAddress: 'Block 301, Road 15, House 45',
+    workAddress: 'Manama, Building 123',
+    email: 'ahmed.ali@email.com',
+    studentIds: ['STU001', 'STU005'], // Two children enrolled
+  },
+  {
+    id: 'guardian-2',
+    serialNumber: 'G002',
+    name: 'Fatima Hassan',
+    mobile: '+973-3456-7891',
+    cpr: '820615432',
+    relationship: 'mother',
+    homeAddress: 'Block 301, Road 15, House 45',
+    workAddress: '',
+    email: 'fatima.h@email.com',
+    studentIds: ['STU001', 'STU005'], // Same children
+  },
+  {
+    id: 'guardian-3',
+    serialNumber: 'G003',
+    name: 'Khalid Omar',
+    mobile: '+973-3789-1234',
+    cpr: '750823456',
+    relationship: 'father',
+    homeAddress: 'Al Hidd, Building 78',
+    workAddress: 'Riffa Industrial Area',
+    email: 'khalid.omar@work.com',
+    studentIds: ['STU002'],
+  },
+];
+
+// Helper function to get transport lines for an area
+export const getTransportLinesForArea = (areaId: string): TransportLine[] => {
+  return mockTransportLines.filter(line => line.areaIds.includes(areaId) && line.isActive);
+};
+
+// Helper function to get transport fee for an area
+export const getTransportFeeForArea = (areaId: string): number => {
+  const area = mockTransportAreas.find(a => a.id === areaId);
+  return area?.fee || 0;
+};
+
+// Helper function to find students with common guardians
+export const findRelatedStudentsByGuardian = (studentId: string): string[] => {
+  const studentGuardians = mockGlobalGuardians.filter(g => g.studentIds.includes(studentId));
+  const relatedStudentIds = new Set<string>();
+  
+  studentGuardians.forEach(guardian => {
+    guardian.studentIds.forEach(id => {
+      if (id !== studentId) {
+        relatedStudentIds.add(id);
+      }
+    });
+  });
+  
+  return Array.from(relatedStudentIds);
+};
+
+// Helper function to calculate monthly fees based on enrollment date
+export const calculateMonthlyFeesFromEnrollment = (
+  enrollmentDate: string,
+  academicYearEnd: string,
+  monthlyFeeAmount: number
+): { months: string[]; totalAmount: number } => {
+  const enrollment = new Date(enrollmentDate);
+  const yearEnd = new Date(academicYearEnd);
+  
+  const months: string[] = [];
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  let current = new Date(enrollment.getFullYear(), enrollment.getMonth(), 1);
+  
+  while (current <= yearEnd) {
+    months.push(`${monthNames[current.getMonth()]} ${current.getFullYear()}`);
+    current.setMonth(current.getMonth() + 1);
+  }
+  
+  return {
+    months,
+    totalAmount: months.length * monthlyFeeAmount,
+  };
+};

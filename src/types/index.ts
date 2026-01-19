@@ -25,6 +25,7 @@ export interface Student {
   parentEmail?: string;
   address?: string;
   returnAddress?: string;
+  transportAreaId?: string; // Area/block for transport fee
   transportLineId?: string;
   enrollmentDate: string;
   status: 'active' | 'inactive' | 'graduated' | 'transferred';
@@ -32,6 +33,7 @@ export interface Student {
   discountType?: DiscountType;
   discountValue?: number;
   allowReRegistration?: boolean; // Admin approval for re-registration across years
+  appliedDiscountIds?: string[]; // Multiple discounts can be applied
 }
 
 export type DiscountType = 'none' | 'sibling' | 'staff' | 'scholarship' | 'custom';

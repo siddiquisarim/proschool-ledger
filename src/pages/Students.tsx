@@ -299,6 +299,7 @@ function StudentForm({ onClose, student, isEditMode = false }: StudentFormProps)
     levelId: student?.levelId || '',
     address: student?.address || '', 
     returnAddress: student?.returnAddress || '', 
+    transportAreaId: student?.transportAreaId || '',
     transportLineId: student?.transportLineId || '',
   });
   const [guardians, setGuardians] = useState<Guardian[]>([]);
