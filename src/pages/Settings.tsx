@@ -1060,6 +1060,91 @@ export function SettingsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Teacher Assignment Dialog */}
+      <Dialog open={isTeacherAssignDialogOpen} onOpenChange={setIsTeacherAssignDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Assign Teachers - {selectedClassForTeachers?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedClassForTeachers && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Assign teachers to specific subjects for this class. Each subject can have one teacher assigned.
+              </p>
+              
+              {/* Current Assignments */}
+              {(selectedClassForTeachers.subjectTeachers?.length ?? 0) > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Current Assignments</Label>
+                  <div className="space-y-2">
+                    {selectedClassForTeachers.subjectTeachers?.map(st => (
+                      <div key={st.subjectId} className="flex items-center justify-between p-3 border rounded bg-muted/30">
+                        <div className="flex items-center gap-3">
+                          <Badge variant="secondary">{st.subjectName}</Badge>
+                          <span className="text-sm">{st.teacherName}</span>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => removeSubjectTeacher(selectedClassForTeachers.id, st.subjectId)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Add New Assignment */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Add Teacher Assignment</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {subjects
+                    .filter(s => s.isActive)
+                    .filter(s => !selectedClassForTeachers.subjectTeachers?.some(st => st.subjectId === s.id))
+                    .map(subject => (
+                      <div key={subject.id} className="p-3 border rounded">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge variant="outline">{subject.name}</Badge>
+                          <span className="text-xs text-muted-foreground">{subject.code}</span>
+                        </div>
+                        <Select
+                          onValueChange={(teacherId) => {
+                            addSubjectTeacher(selectedClassForTeachers.id, subject.id, teacherId);
+                            // Update the selected class reference
+                            setSelectedClassForTeachers(classes.find(c => c.id === selectedClassForTeachers.id) || null);
+                          }}
+                        >
+                          <SelectTrigger className="h-9">
+                            <SelectValue placeholder="Select teacher..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {mockTeachers.map(teacher => (
+                              <SelectItem key={teacher.id} value={teacher.id}>
+                                {teacher.firstName} {teacher.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ))}
+                </div>
+                {subjects.filter(s => s.isActive).filter(s => !selectedClassForTeachers.subjectTeachers?.some(st => st.subjectId === s.id)).length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    All subjects have been assigned teachers.
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsTeacherAssignDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
