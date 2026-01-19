@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, isFuture, startOfDay } from 'date-fns';
 import {
   CalendarIcon,
   Check,
@@ -25,6 +25,7 @@ import {
   GraduationCap,
 } from 'lucide-react';
 import { mockStudents, mockTeachers, mockAttendance } from '@/data/mockData';
+import { mockLevels, mockAcademicClasses } from '@/data/settingsData';
 import { AttendanceRecord } from '@/types';
 
 type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
@@ -39,17 +40,45 @@ const statusConfig: Record<AttendanceStatus, { icon: typeof Check; label: string
 export function AttendancePage() {
   const { t } = useApp();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [gradeFilter, setGradeFilter] = useState<string>('all');
+  const [levelFilter, setLevelFilter] = useState<string>('all');
+  const [classFilter, setClassFilter] = useState<string>('all');
   const [attendanceData, setAttendanceData] = useState<Record<string, AttendanceStatus>>({});
   const [entityType, setEntityType] = useState<'student' | 'teacher'>('student');
 
+  // Get active levels and classes
+  const activeLevels = mockLevels.filter(l => l.isActive);
+  const activeClasses = mockAcademicClasses.filter(c => c.isActive);
+  
+  // Filter classes based on selected level
+  const filteredClasses = levelFilter === 'all' 
+    ? activeClasses 
+    : activeClasses.filter(c => c.levelId === levelFilter);
+
+  // Legacy grade extraction from students for filtering
   const grades = [...new Set(mockStudents.map(s => s.grade))].sort();
   
+  // Filter entities based on level and class (for students)
   const entities = entityType === 'student'
-    ? mockStudents.filter(s => s.status === 'active' && (gradeFilter === 'all' || s.grade === gradeFilter))
+    ? mockStudents.filter(s => {
+        if (s.status !== 'active') return false;
+        if (levelFilter === 'all' && classFilter === 'all') return true;
+        // For now, filter by grade which maps roughly to class names
+        if (classFilter !== 'all') {
+          const selectedClass = activeClasses.find(c => c.id === classFilter);
+          return selectedClass ? s.grade.includes(selectedClass.name.split('-')[0]) : true;
+        }
+        if (levelFilter !== 'all') {
+          const levelClasses = activeClasses.filter(c => c.levelId === levelFilter);
+          return levelClasses.some(c => s.grade.includes(c.name.split('-')[0]));
+        }
+        return true;
+      })
     : mockTeachers.filter(t => t.status === 'active');
 
   const dateKey = format(selectedDate, 'yyyy-MM-dd');
+  
+  // Check if selected date is in the future
+  const isFutureDate = isFuture(startOfDay(selectedDate));
   
   // Load existing attendance for selected date
   const existingAttendance = mockAttendance.filter(
@@ -63,10 +92,12 @@ export function AttendancePage() {
   };
 
   const setStatus = (entityId: string, status: AttendanceStatus) => {
+    if (isFutureDate) return; // Prevent marking future dates
     setAttendanceData(prev => ({ ...prev, [entityId]: status }));
   };
 
   const markAllPresent = () => {
+    if (isFutureDate) return; // Prevent marking future dates
     const newData: Record<string, AttendanceStatus> = {};
     entities.forEach(e => {
       newData[e.id] = 'present';
@@ -91,6 +122,19 @@ export function AttendancePage() {
 
   const stats = getStats();
 
+  // Handle date selection - prevent future dates
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date && !isFuture(startOfDay(date))) {
+      setSelectedDate(date);
+    }
+  };
+
+  // Reset class filter when level changes
+  const handleLevelChange = (value: string) => {
+    setLevelFilter(value);
+    setClassFilter('all');
+  };
+
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Page Header */}
@@ -106,6 +150,16 @@ export function AttendancePage() {
           Save Attendance
         </Button>
       </div>
+
+      {/* Future Date Warning */}
+      {isFutureDate && (
+        <Card className="p-3 border-amber bg-amber/10">
+          <p className="text-sm text-amber-600 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4" />
+            Cannot mark attendance for future dates. Please select today or a past date.
+          </p>
+        </Card>
+      )}
 
       {/* Controls */}
       <Card className="p-4">
@@ -124,7 +178,8 @@ export function AttendancePage() {
                 <Calendar
                   mode="single"
                   selected={selectedDate}
-                  onSelect={(date) => date && setSelectedDate(date)}
+                  onSelect={handleDateSelect}
+                  disabled={(date) => isFuture(startOfDay(date))}
                   initialFocus
                   className="pointer-events-auto"
                 />
@@ -146,24 +201,38 @@ export function AttendancePage() {
             </TabsList>
           </Tabs>
 
-          {/* Grade Filter (Students only) */}
+          {/* Level Filter (Students only) */}
           {entityType === 'student' && (
-            <Select value={gradeFilter} onValueChange={setGradeFilter}>
-              <SelectTrigger className="w-[150px] h-9">
-                <SelectValue placeholder="All Grades" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Grades</SelectItem>
-                {grades.map(grade => (
-                  <SelectItem key={grade} value={grade}>{grade}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <>
+              <Select value={levelFilter} onValueChange={handleLevelChange}>
+                <SelectTrigger className="w-[150px] h-9">
+                  <SelectValue placeholder="All Levels" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  {activeLevels.map(level => (
+                    <SelectItem key={level.id} value={level.id}>{level.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={classFilter} onValueChange={setClassFilter}>
+                <SelectTrigger className="w-[150px] h-9">
+                  <SelectValue placeholder="All Classes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Classes</SelectItem>
+                  {filteredClasses.map(cls => (
+                    <SelectItem key={cls.id} value={cls.id}>{cls.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </>
           )}
 
           <div className="flex-1" />
 
-          <Button variant="outline" size="sm" onClick={markAllPresent}>
+          <Button variant="outline" size="sm" onClick={markAllPresent} disabled={isFutureDate}>
             <Check className="w-4 h-4" />
             Mark All Present
           </Button>
@@ -231,9 +300,11 @@ export function AttendancePage() {
                       <td key={s} className="text-center">
                         <button
                           onClick={() => setStatus(entity.id, s)}
+                          disabled={isFutureDate}
                           className={cn(
                             "w-8 h-8 rounded flex items-center justify-center transition-all",
-                            status === s ? statusConfig[s].className : "bg-muted hover:bg-muted/80"
+                            status === s ? statusConfig[s].className : "bg-muted hover:bg-muted/80",
+                            isFutureDate && "opacity-50 cursor-not-allowed"
                           )}
                         >
                           {React.createElement(statusConfig[s].icon, { className: "w-4 h-4" })}

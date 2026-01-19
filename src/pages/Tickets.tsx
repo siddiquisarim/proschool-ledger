@@ -53,7 +53,23 @@ export function TicketsPage() {
 
   const isAdmin = currentUser?.role === 'admin';
 
-  const filteredTickets = tickets.filter(ticket => {
+  // Role-based filtering: non-admins see only tickets they created or are assigned to
+  const userTickets = tickets.filter(ticket => {
+    // Admin sees all
+    if (isAdmin) return true;
+    // User sees tickets they created
+    if (ticket.createdBy === currentUser?.id) return true;
+    // User sees tickets assigned to them
+    if (ticket.assignedToUserId === currentUser?.id) return true;
+    // User sees tickets assigned to their group
+    if (ticket.assignedToGroupId) {
+      const group = mockUserGroups.find(g => g.id === ticket.assignedToGroupId);
+      if (group?.memberIds.includes(currentUser?.id || '')) return true;
+    }
+    return false;
+  });
+
+  const filteredTickets = userTickets.filter(ticket => {
     if (activeTab === 'all') return true;
     if (activeTab === 'my') {
       return ticket.assignedToUserId === currentUser?.id || 

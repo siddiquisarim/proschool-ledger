@@ -39,7 +39,16 @@ export function HRLeavePage() {
 
   const isAdmin = currentUser?.role === 'admin';
 
-  const filteredRequests = leaveRequests.filter(req => {
+  // Role-based filtering: users see only their own records
+  const userRecords = leaveRequests.filter(req => {
+    // Admin sees all
+    if (isAdmin) return true;
+    // Other users see only their own submissions
+    const employee = mockEmployees.find(e => e.id === req.employeeId);
+    return employee?.id === currentUser?.id;
+  });
+
+  const filteredRequests = userRecords.filter(req => {
     if (activeTab === 'all') return true;
     return req.status === activeTab;
   });

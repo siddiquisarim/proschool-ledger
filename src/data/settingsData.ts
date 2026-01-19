@@ -1,4 +1,4 @@
-import { Level, AcademicClass, TransportLine, TransportArea, AcademicYear, FeeDiscount, AcademicYearEnrollment, FeeType, PredefinedExtraFee, GlobalGuardian } from '@/types/settings';
+import { Level, AcademicClass, TransportLine, TransportArea, AcademicYear, FeeDiscount, AcademicYearEnrollment, FeeType, PredefinedExtraFee, GlobalGuardian, Subject, IDCardSettings } from '@/types/settings';
 
 export const mockLevels: Level[] = [
   { id: 'level-1', name: 'Level 1', order: 1, isActive: true },
@@ -134,7 +134,31 @@ export const mockPredefinedExtraFees: PredefinedExtraFee[] = [
   { id: 'extra-certificate', name: 'Certificate Fee', amount: 25, description: 'Certificate and document processing', isActive: true },
 ];
 
-// Global guardian registry (unique guardians across all students)
+// Subjects for the school
+export const mockSubjects: Subject[] = [
+  { id: 'subj-english', name: 'English', code: 'ENG', isActive: true },
+  { id: 'subj-math', name: 'Mathematics', code: 'MATH', isActive: true },
+  { id: 'subj-science', name: 'Science', code: 'SCI', isActive: true },
+  { id: 'subj-arabic', name: 'Arabic', code: 'ARB', isActive: true },
+  { id: 'subj-islamic', name: 'Islamic Studies', code: 'ISL', isActive: true },
+  { id: 'subj-social', name: 'Social Studies', code: 'SOC', isActive: true },
+  { id: 'subj-art', name: 'Art', code: 'ART', isActive: true },
+  { id: 'subj-pe', name: 'Physical Education', code: 'PE', isActive: true },
+  { id: 'subj-music', name: 'Music', code: 'MUS', isActive: true },
+  { id: 'subj-ict', name: 'ICT', code: 'ICT', isActive: true },
+];
+
+// ID Card default settings
+export const defaultIDCardSettings: IDCardSettings = {
+  primaryColor: '#1e3a5f',
+  secondaryColor: '#2d5a87',
+  logoPosition: 'left',
+  showLogo: true,
+  backgroundColor: '#1e3a5f',
+  textColor: '#ffffff',
+  accentColor: '#3b82f6',
+};
+
 export const mockGlobalGuardians: GlobalGuardian[] = [
   {
     id: 'guardian-1',
