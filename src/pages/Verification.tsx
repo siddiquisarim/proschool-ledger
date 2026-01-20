@@ -107,15 +107,6 @@ export function VerificationPage() {
     }
   };
 
-  const getPaymentMethodBadge = (method: Payment['paymentMethod']) => {
-    const variants: Record<string, string> = {
-      cash: 'bg-accent/20 text-accent',
-      card: 'bg-primary/20 text-primary',
-      bank_transfer: 'bg-status-partial/20 text-status-partial',
-      check: 'bg-amber/20 text-amber',
-    };
-    return <Badge className={cn("text-xs", variants[method])}>{method.replace('_', ' ')}</Badge>;
-  };
 
   const renderClosureCard = (closure: DailyClosure, showActions: boolean, actionLevel: 'supervisor' | 'accountant') => {
     const payments = getClosurePayments(closure.cashierId, closure.date);
@@ -162,24 +153,12 @@ export function VerificationPage() {
         
         <div className="p-4">
           {/* Transaction Summary */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-4 mb-4">
-            <div className="text-center p-2 bg-muted/50 rounded">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Cash</p>
-              <p className="font-mono font-medium text-sm sm:text-base">AED {closure.totalCash.toLocaleString()}</p>
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 mb-4">
+            <div className="text-center p-3 bg-muted/50 rounded">
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Cash Collected</p>
+              <p className="font-mono font-medium text-base sm:text-lg">AED {closure.totalCash.toLocaleString()}</p>
             </div>
-            <div className="text-center p-2 bg-muted/50 rounded">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Card</p>
-              <p className="font-mono font-medium text-sm sm:text-base">AED {closure.totalCard.toLocaleString()}</p>
-            </div>
-            <div className="text-center p-2 bg-muted/50 rounded">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Transfer</p>
-              <p className="font-mono font-medium text-sm sm:text-base">AED {closure.totalBankTransfer.toLocaleString()}</p>
-            </div>
-            <div className="text-center p-2 bg-muted/50 rounded">
-              <p className="text-xs text-muted-foreground uppercase tracking-wider">Check</p>
-              <p className="font-mono font-medium text-sm sm:text-base">AED {closure.totalCheck.toLocaleString()}</p>
-            </div>
-            <div className="text-center p-2 bg-primary/10 rounded border-2 border-primary/20 col-span-2 sm:col-span-1">
+            <div className="text-center p-3 bg-primary/10 rounded border-2 border-primary/20">
               <p className="text-xs text-primary font-medium uppercase tracking-wider">Total</p>
               <p className="font-mono font-semibold text-base sm:text-lg">AED {closure.grandTotal.toLocaleString()}</p>
             </div>
@@ -434,10 +413,7 @@ export function VerificationPage() {
                     <TableHead className="whitespace-nowrap">Date</TableHead>
                     <TableHead className="whitespace-nowrap">Cashier</TableHead>
                     <TableHead className="text-center whitespace-nowrap hidden sm:table-cell">Trans.</TableHead>
-                    <TableHead className="text-right whitespace-nowrap hidden md:table-cell">Cash</TableHead>
-                    <TableHead className="text-right whitespace-nowrap hidden md:table-cell">Card</TableHead>
-                    <TableHead className="text-right whitespace-nowrap hidden lg:table-cell">Transfer</TableHead>
-                    <TableHead className="text-right whitespace-nowrap hidden lg:table-cell">Check</TableHead>
+                    <TableHead className="text-right whitespace-nowrap">Cash Collected</TableHead>
                     <TableHead className="text-right whitespace-nowrap">Total</TableHead>
                     <TableHead className="whitespace-nowrap hidden sm:table-cell">Status</TableHead>
                     <TableHead className="whitespace-nowrap">Actions</TableHead>
@@ -446,7 +422,7 @@ export function VerificationPage() {
                 <TableBody>
                   {finalized.filter(c => c.status === 'deposited').length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={10} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                         No completed deposits yet
                       </TableCell>
                     </TableRow>
@@ -460,10 +436,7 @@ export function VerificationPage() {
                         <TableCell className="text-center hidden sm:table-cell">
                           <Badge variant="secondary">{closure.transactionCount}</Badge>
                         </TableCell>
-                        <TableCell className="text-right font-mono text-sm hidden md:table-cell">AED {closure.totalCash.toLocaleString()}</TableCell>
-                        <TableCell className="text-right font-mono text-sm hidden md:table-cell">AED {closure.totalCard.toLocaleString()}</TableCell>
-                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell">AED {closure.totalBankTransfer.toLocaleString()}</TableCell>
-                        <TableCell className="text-right font-mono text-sm hidden lg:table-cell">AED {closure.totalCheck.toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-mono text-sm">AED {closure.totalCash.toLocaleString()}</TableCell>
                         <TableCell className="text-right font-mono font-semibold text-sm whitespace-nowrap">
                           AED {closure.grandTotal.toLocaleString()}
                         </TableCell>
@@ -572,7 +545,6 @@ export function VerificationPage() {
                         <TableHead>Receipt #</TableHead>
                         <TableHead>Student</TableHead>
                         <TableHead>Fee Type</TableHead>
-                        <TableHead>Method</TableHead>
                         <TableHead className="text-right">Original</TableHead>
                         <TableHead className="text-right">Discount</TableHead>
                         <TableHead className="text-right">Paid</TableHead>
@@ -586,7 +558,6 @@ export function VerificationPage() {
                           <TableCell>
                             <Badge variant="outline">{payment.feeType}</Badge>
                           </TableCell>
-                          <TableCell>{getPaymentMethodBadge(payment.paymentMethod)}</TableCell>
                           <TableCell className="text-right font-mono">AED {payment.originalAmount.toLocaleString()}</TableCell>
                           <TableCell className="text-right font-mono text-accent">
                             {payment.discountApplied > 0 ? `-AED ${payment.discountApplied.toLocaleString()}` : '-'}
@@ -596,7 +567,7 @@ export function VerificationPage() {
                       ))}
                       {getClosurePayments(selectedClosure.cashierId, selectedClosure.date).length === 0 && (
                         <TableRow>
-                          <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                             No transaction details available
                           </TableCell>
                         </TableRow>
