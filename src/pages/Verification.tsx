@@ -49,9 +49,13 @@ export function VerificationPage() {
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'finalize' | 'deposit'>('approve');
 
   const isCashier = currentUser?.role === 'cashier';
-  const isSupervisor = currentUser?.role === 'supervisor' || currentUser?.role === 'admin';
-  const isAccountant = currentUser?.role === 'accountant' || currentUser?.role === 'admin';
+  const isSupervisorOnly = currentUser?.role === 'supervisor';
+  const isAccountantOnly = currentUser?.role === 'accountant';
   const isAdmin = currentUser?.role === 'admin';
+  
+  // Combined permissions for actions
+  const canApproveSupervisor = isSupervisorOnly || isAdmin;
+  const canFinalizeAccountant = isAccountantOnly || isAdmin;
 
   // Role-based filtering
   const userClosures = mockClosures.filter(c => {
@@ -60,7 +64,7 @@ export function VerificationPage() {
     // Cashier sees only their own submissions
     if (isCashier) return c.cashierId === currentUser?.id;
     // Supervisor and Accountant see all for approval
-    if (isSupervisor || isAccountant) return true;
+    if (isSupervisorOnly || isAccountantOnly) return true;
     return false;
   });
 
@@ -213,7 +217,7 @@ export function VerificationPage() {
               <span className="hidden sm:inline">View Transactions</span>
               <span className="sm:hidden">View</span>
             </Button>
-            {showActions && actionLevel === 'supervisor' && isSupervisor && (
+            {showActions && actionLevel === 'supervisor' && canApproveSupervisor && (
               <>
                 <Button variant="success" size="sm" className="text-xs sm:text-sm" onClick={() => handleAction(closure, 'approve')}>
                   <CheckCircle2 className="w-4 h-4" />
@@ -225,7 +229,7 @@ export function VerificationPage() {
                 </Button>
               </>
             )}
-            {showActions && actionLevel === 'accountant' && isAccountant && (
+            {showActions && actionLevel === 'accountant' && canFinalizeAccountant && (
               <>
                 <Button variant="success" size="sm" className="text-xs sm:text-sm" onClick={() => handleAction(closure, 'finalize')}>
                   <CheckCircle2 className="w-4 h-4" />
@@ -292,76 +296,129 @@ export function VerificationPage() {
       </Card>
 
       {/* Verification Queues */}
-      <Tabs defaultValue="pending" className="space-y-4">
+      <Tabs defaultValue={isCashier ? "my-submissions" : isSupervisorOnly ? "pending" : isAccountantOnly ? "approved" : "pending"} className="space-y-4">
         <div className="overflow-x-auto -mx-1 px-1">
           <TabsList className="inline-flex w-auto min-w-full md:w-auto gap-1">
-            <TabsTrigger value="pending" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
-              <Clock className="w-4 h-4" />
-              <span className="hidden sm:inline">Pending Supervisor</span>
-              <span className="sm:hidden">Supervisor</span>
-              {pendingSupervisor.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-xxs bg-amber text-foreground rounded">
-                  {pendingSupervisor.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="approved" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
-              <AlertTriangle className="w-4 h-4" />
-              <span className="hidden sm:inline">Pending Accountant</span>
-              <span className="sm:hidden">Accountant</span>
-              {pendingAccountant.length > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 text-xxs bg-status-partial text-foreground rounded">
-                  {pendingAccountant.length}
-                </span>
-              )}
-            </TabsTrigger>
-            <TabsTrigger value="finalized" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
-              <CheckCircle2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Finalized</span>
-              <span className="sm:hidden">Final</span>
-            </TabsTrigger>
-            <TabsTrigger value="history" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
-              <History className="w-4 h-4" />
-              <span className="hidden sm:inline">Deposit History</span>
-              <span className="sm:hidden">History</span>
-            </TabsTrigger>
+            {/* Cashier: My Submissions */}
+            {isCashier && (
+              <TabsTrigger value="my-submissions" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
+                <FileText className="w-4 h-4" />
+                <span className="hidden sm:inline">My Submissions</span>
+                <span className="sm:hidden">My Subs</span>
+                {userClosures.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xxs bg-primary text-primary-foreground rounded">
+                    {userClosures.length}
+                  </span>
+                )}
+              </TabsTrigger>
+            )}
+            
+            {/* Supervisor: Pending Supervisor Queue */}
+            {(isSupervisorOnly || isAdmin) && (
+              <TabsTrigger value="pending" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
+                <Clock className="w-4 h-4" />
+                <span className="hidden sm:inline">Pending Supervisor</span>
+                <span className="sm:hidden">Supervisor</span>
+                {pendingSupervisor.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xxs bg-amber text-foreground rounded">
+                    {pendingSupervisor.length}
+                  </span>
+                )}
+              </TabsTrigger>
+            )}
+            
+            {/* Accountant: Pending Accountant Queue */}
+            {(isAccountantOnly || isAdmin) && (
+              <TabsTrigger value="approved" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
+                <AlertTriangle className="w-4 h-4" />
+                <span className="hidden sm:inline">Pending Accountant</span>
+                <span className="sm:hidden">Accountant</span>
+                {pendingAccountant.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xxs bg-status-partial text-foreground rounded">
+                    {pendingAccountant.length}
+                  </span>
+                )}
+              </TabsTrigger>
+            )}
+            
+            {/* Accountant: Finalized */}
+            {(isAccountantOnly || isAdmin) && (
+              <TabsTrigger value="finalized" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
+                <CheckCircle2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Finalized</span>
+                <span className="sm:hidden">Final</span>
+              </TabsTrigger>
+            )}
+            
+            {/* Admin only: Deposit History */}
+            {isAdmin && (
+              <TabsTrigger value="history" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
+                <History className="w-4 h-4" />
+                <span className="hidden sm:inline">Deposit History</span>
+                <span className="sm:hidden">History</span>
+              </TabsTrigger>
+            )}
           </TabsList>
         </div>
 
-        <TabsContent value="pending" className="space-y-4">
-          {pendingSupervisor.length === 0 ? (
-            <Card className="p-8 text-center">
-              <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-accent" />
-              <p className="text-muted-foreground">No closures pending supervisor approval</p>
-            </Card>
-          ) : (
-            pendingSupervisor.map(c => renderClosureCard(c, true, 'supervisor'))
-          )}
-        </TabsContent>
+        {/* Cashier: My Submissions */}
+        {isCashier && (
+          <TabsContent value="my-submissions" className="space-y-4">
+            {userClosures.length === 0 ? (
+              <Card className="p-8 text-center">
+                <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">You have no submissions yet</p>
+              </Card>
+            ) : (
+              userClosures.map(c => renderClosureCard(c, false, 'supervisor'))
+            )}
+          </TabsContent>
+        )}
 
-        <TabsContent value="approved" className="space-y-4">
-          {pendingAccountant.length === 0 ? (
-            <Card className="p-8 text-center">
-              <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-accent" />
-              <p className="text-muted-foreground">No closures pending accountant finalization</p>
-            </Card>
-          ) : (
-            pendingAccountant.map(c => renderClosureCard(c, true, 'accountant'))
-          )}
-        </TabsContent>
+        {/* Supervisor Queue */}
+        {(isSupervisorOnly || isAdmin) && (
+          <TabsContent value="pending" className="space-y-4">
+            {pendingSupervisor.length === 0 ? (
+              <Card className="p-8 text-center">
+                <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-accent" />
+                <p className="text-muted-foreground">No closures pending supervisor approval</p>
+              </Card>
+            ) : (
+              pendingSupervisor.map(c => renderClosureCard(c, true, 'supervisor'))
+            )}
+          </TabsContent>
+        )}
 
-        <TabsContent value="finalized" className="space-y-4">
-          {finalized.filter(c => c.status === 'finalized').length === 0 ? (
-            <Card className="p-8 text-center">
-              <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground">No finalized closures awaiting deposit</p>
-            </Card>
-          ) : (
-            finalized.filter(c => c.status === 'finalized').map(c => renderClosureCard(c, true, 'accountant'))
-          )}
-        </TabsContent>
+        {/* Accountant Queue */}
+        {(isAccountantOnly || isAdmin) && (
+          <TabsContent value="approved" className="space-y-4">
+            {pendingAccountant.length === 0 ? (
+              <Card className="p-8 text-center">
+                <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-accent" />
+                <p className="text-muted-foreground">No closures pending accountant finalization</p>
+              </Card>
+            ) : (
+              pendingAccountant.map(c => renderClosureCard(c, true, 'accountant'))
+            )}
+          </TabsContent>
+        )}
 
-        {/* Deposit History Tab */}
+        {/* Finalized */}
+        {(isAccountantOnly || isAdmin) && (
+          <TabsContent value="finalized" className="space-y-4">
+            {finalized.filter(c => c.status === 'finalized').length === 0 ? (
+              <Card className="p-8 text-center">
+                <FileText className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">No finalized closures awaiting deposit</p>
+              </Card>
+            ) : (
+              finalized.filter(c => c.status === 'finalized').map(c => renderClosureCard(c, true, 'accountant'))
+            )}
+          </TabsContent>
+        )}
+
+        {/* Deposit History Tab - Admin only */}
+        {isAdmin && (
         <TabsContent value="history">
           <Card>
             <div className="data-card-header">
@@ -426,6 +483,7 @@ export function VerificationPage() {
             </div>
           </Card>
         </TabsContent>
+        )}
       </Tabs>
 
       {/* Verification Action Dialog */}
