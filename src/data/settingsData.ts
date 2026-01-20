@@ -95,7 +95,7 @@ export const mockFeeDiscounts: FeeDiscount[] = [
   },
   { 
     id: 'disc-registration', 
-    name: 'Registration Discount', 
+    name: 'Registration Fee Discount', 
     description: 'Applies only to registration fee',
     type: 'percentage', 
     value: 10, 
@@ -105,10 +105,55 @@ export const mockFeeDiscounts: FeeDiscount[] = [
   { 
     id: 'disc-early-bird', 
     name: 'Early Bird Discount', 
-    description: 'For early registration',
+    description: 'For early registration - Fixed amount off total',
     type: 'fixed', 
     value: 200, 
     applicableFees: [],
+    isActive: true 
+  },
+  { 
+    id: 'disc-books-materials', 
+    name: 'Books & Materials Discount', 
+    description: '15% off books and materials fee',
+    type: 'percentage', 
+    value: 15, 
+    applicableFees: ['fee-books'],
+    isActive: true 
+  },
+  { 
+    id: 'disc-uniform', 
+    name: 'Uniform Discount', 
+    description: '20% off uniform fee',
+    type: 'percentage', 
+    value: 20, 
+    applicableFees: ['fee-uniform'],
+    isActive: true 
+  },
+  { 
+    id: 'disc-tuition-full', 
+    name: 'Tuition Full Scholarship', 
+    description: '100% tuition fee waiver for exceptional cases',
+    type: 'percentage', 
+    value: 100, 
+    applicableFees: ['fee-tuition'],
+    isActive: true 
+  },
+  { 
+    id: 'disc-monthly-subsidy', 
+    name: 'Monthly Fee Subsidy', 
+    description: 'Fixed monthly subsidy of AED 50',
+    type: 'fixed', 
+    value: 50, 
+    applicableFees: ['fee-monthly'],
+    isActive: true 
+  },
+  { 
+    id: 'disc-activities', 
+    name: 'Activities Fee Waiver', 
+    description: 'Free activities for qualifying students',
+    type: 'percentage', 
+    value: 100, 
+    applicableFees: ['fee-activities'],
     isActive: true 
   },
 ];

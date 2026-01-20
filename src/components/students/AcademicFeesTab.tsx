@@ -18,7 +18,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Percent, CreditCard, Check, Plus, AlertCircle, Lock, Calendar } from 'lucide-react';
+import { Percent, CreditCard, Check, Plus, AlertCircle, Lock, Calendar, X, Tag } from 'lucide-react';
 import { mockAcademicYears, mockAcademicClasses, mockFeeDiscounts, mockFeeTypes, mockPredefinedExtraFees, calculateMonthlyFeesFromEnrollment } from '@/data/settingsData';
 import { cn } from '@/lib/utils';
 import { CustomFee } from '@/types/settings';
@@ -111,17 +111,7 @@ export function AcademicFeesTab({
   };
 
   const calculateFeeAmount = (feeId: string, baseAmount: number) => {
-    const appliedDiscount = appliedDiscounts.find(d => d.feeId === feeId);
-    if (!appliedDiscount) return baseAmount;
-    
-    const discount = activeDiscounts.find(d => d.id === appliedDiscount.discountId);
-    if (!discount) return baseAmount;
-
-    if (discount.type === 'percentage') {
-      return baseAmount * (1 - discount.value / 100);
-    } else {
-      return Math.max(0, baseAmount - discount.value);
-    }
+    return calculateFeeAmountWithMultiple(feeId, baseAmount);
   };
 
   const getMonthlyTotal = () => {
@@ -161,19 +151,62 @@ export function AcademicFeesTab({
     const discount = activeDiscounts.find(d => d.id === selectedDiscountId);
     if (!discount) return;
 
+    // Add new discounts without removing existing ones for same fee (allows multiple discounts)
     const newDiscounts = discount.applicableFees.map(feeId => ({
       discountId: selectedDiscountId,
       feeId,
     }));
 
-    setAppliedDiscounts([...appliedDiscounts.filter(d => !discount.applicableFees.includes(d.feeId)), ...newDiscounts]);
+    // Filter out duplicates (same discount on same fee)
+    const existingPairs = appliedDiscounts.map(d => `${d.discountId}-${d.feeId}`);
+    const uniqueNewDiscounts = newDiscounts.filter(
+      d => !existingPairs.includes(`${d.discountId}-${d.feeId}`)
+    );
+
+    setAppliedDiscounts([...appliedDiscounts, ...uniqueNewDiscounts]);
+    setSelectedDiscountId('');
     setIsDiscountDialogOpen(false);
   };
 
+  const removeDiscount = (discountId: string) => {
+    setAppliedDiscounts(appliedDiscounts.filter(d => d.discountId !== discountId));
+  };
+
+  const getDiscountsForFee = (feeId: string) => {
+    const applied = appliedDiscounts.filter(d => d.feeId === feeId);
+    return applied
+      .map(a => activeDiscounts.find(d => d.id === a.discountId))
+      .filter(Boolean) as typeof activeDiscounts;
+  };
+
   const getDiscountForFee = (feeId: string) => {
-    const applied = appliedDiscounts.find(d => d.feeId === feeId);
-    if (!applied) return null;
-    return activeDiscounts.find(d => d.id === applied.discountId);
+    const discounts = getDiscountsForFee(feeId);
+    return discounts.length > 0 ? discounts[0] : null;
+  };
+
+  // Get unique applied discounts for display
+  const uniqueAppliedDiscounts = useMemo(() => {
+    const discountIds = [...new Set(appliedDiscounts.map(d => d.discountId))];
+    return discountIds
+      .map(id => activeDiscounts.find(d => d.id === id))
+      .filter(Boolean) as typeof activeDiscounts;
+  }, [appliedDiscounts, activeDiscounts]);
+
+  // Calculate fee amount with multiple discounts stacking
+  const calculateFeeAmountWithMultiple = (feeId: string, baseAmount: number) => {
+    const discounts = getDiscountsForFee(feeId);
+    if (discounts.length === 0) return baseAmount;
+    
+    let amount = baseAmount;
+    discounts.forEach(discount => {
+      if (discount.type === 'percentage') {
+        amount = amount * (1 - discount.value / 100);
+      } else {
+        amount = Math.max(0, amount - discount.value);
+      }
+    });
+    
+    return Math.round(amount * 100) / 100;
   };
 
   const addExtraFee = () => {
@@ -280,6 +313,38 @@ export function AcademicFeesTab({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Fees List */}
         <div className="lg:col-span-2 space-y-4">
+          {/* Applied Discounts Display */}
+          {uniqueAppliedDiscounts.length > 0 && (
+            <Card className="p-4 bg-accent/5 border-accent/20">
+              <div className="flex items-center gap-2 mb-3">
+                <Tag className="w-4 h-4 text-accent" />
+                <h4 className="font-medium">Applied Discounts ({uniqueAppliedDiscounts.length})</h4>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {uniqueAppliedDiscounts.map(discount => (
+                  <Badge 
+                    key={discount.id} 
+                    variant="secondary" 
+                    className="bg-accent/10 text-accent border-accent/20 pl-2 pr-1 py-1 flex items-center gap-1"
+                  >
+                    <span>{discount.name}</span>
+                    <span className="text-xs opacity-75">
+                      ({discount.type === 'percentage' ? `${discount.value}%` : `AED ${discount.value}`})
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-4 w-4 ml-1 hover:bg-destructive/20 hover:text-destructive rounded-full"
+                      onClick={() => removeDiscount(discount.id)}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </Badge>
+                ))}
+              </div>
+            </Card>
+          )}
+
           {/* Mandatory Fees - Auto-applied & Locked */}
           <Card className="p-4">
             <div className="flex items-center gap-2 mb-3">
@@ -291,7 +356,7 @@ export function AcademicFeesTab({
             </div>
             <div className="space-y-2">
               {mandatoryFees.map(fee => {
-                const discount = getDiscountForFee(fee.id);
+                const discounts = getDiscountsForFee(fee.id);
                 const finalAmount = calculateFeeAmount(fee.id, fee.amount);
                 return (
                   <div key={fee.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-3 border rounded bg-muted/30 gap-2">
@@ -302,19 +367,23 @@ export function AcademicFeesTab({
                         disabled={true}
                         className="mt-1 sm:mt-0"
                       />
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                      <div className="flex flex-col gap-1">
                         <Label htmlFor={fee.id} className="cursor-default text-muted-foreground">
                           {fee.name}
                         </Label>
-                        {discount && (
-                          <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded">
-                            {discount.name} ({discount.type === 'percentage' ? `${discount.value}%` : `AED ${discount.value}`})
-                          </span>
+                        {discounts.length > 0 && (
+                          <div className="flex flex-wrap gap-1">
+                            {discounts.map(discount => (
+                              <span key={discount.id} className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded">
+                                {discount.name} ({discount.type === 'percentage' ? `${discount.value}%` : `AED ${discount.value}`})
+                              </span>
+                            ))}
+                          </div>
                         )}
                       </div>
                     </div>
                     <div className="text-right ml-6 sm:ml-0">
-                      {discount ? (
+                      {discounts.length > 0 ? (
                         <div>
                           <span className="text-sm text-muted-foreground line-through">AED {fee.amount}</span>
                           <span className="font-mono font-medium ml-2">AED {finalAmount.toLocaleString()}</span>
@@ -342,7 +411,7 @@ export function AcademicFeesTab({
             </div>
             
             {monthlyFees.map(fee => {
-              const discount = getDiscountForFee(fee.id);
+              const discounts = getDiscountsForFee(fee.id);
               const monthlyAmount = calculateFeeAmount(fee.id, fee.amount);
               const currentMonth = monthlyFeeDetails.months[0];
               
@@ -357,10 +426,19 @@ export function AcademicFeesTab({
                           {fee.name} - {currentMonth}
                         </Label>
                         <p className="text-xs text-muted-foreground">Current month (auto-applied)</p>
+                        {discounts.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {discounts.map(discount => (
+                              <span key={discount.id} className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded">
+                                {discount.name} ({discount.type === 'percentage' ? `${discount.value}%` : `AED ${discount.value}`})
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                     <div className="flex items-center gap-2 ml-6 sm:ml-0">
-                      {discount && (
+                      {discounts.length > 0 && (
                         <span className="text-xs text-muted-foreground line-through">AED {fee.amount}</span>
                       )}
                       <span className="font-mono font-medium">AED {monthlyAmount.toLocaleString()}</span>
