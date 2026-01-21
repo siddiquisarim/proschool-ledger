@@ -11,6 +11,7 @@ import {
 import { Languages, User, Shield, ChevronDown } from 'lucide-react';
 import { UserRole } from '@/types';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const roles: { role: UserRole; label: string }[] = [
   { role: 'admin', label: 'Administrator' },
@@ -21,6 +22,12 @@ const roles: { role: UserRole; label: string }[] = [
 
 export function AppHeader() {
   const { currentUser, language, setLanguage, switchRole, t, isRTL } = useApp();
+  const isMobile = useIsMobile();
+
+  // On mobile, the header is part of the sidebar component
+  if (isMobile) {
+    return null;
+  }
 
   return (
     <header className="h-14 bg-card border-b border-border flex items-center justify-between px-4">
@@ -51,7 +58,7 @@ export function AppHeader() {
               <ChevronDown className="w-3 h-3" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align={isRTL ? "start" : "end"}>
+          <DropdownMenuContent align={isRTL ? "start" : "end"} className="bg-background z-50">
             <DropdownMenuLabel className="text-xs text-muted-foreground">Switch Role (Demo)</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {roles.map(({ role, label }) => (
@@ -78,7 +85,7 @@ export function AppHeader() {
               </div>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align={isRTL ? "start" : "end"}>
+          <DropdownMenuContent align={isRTL ? "start" : "end"} className="bg-background z-50">
             <DropdownMenuLabel>
               <div>
                 <p className="text-sm font-medium">{currentUser?.name}</p>

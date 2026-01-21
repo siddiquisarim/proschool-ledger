@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MobileTabs, TabsContent } from '@/components/ui/mobile-tabs';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
@@ -71,6 +71,71 @@ export function VerificationPage() {
   const pendingSupervisor = userClosures.filter(c => c.status === 'pending');
   const pendingAccountant = userClosures.filter(c => c.status === 'supervisor_approved');
   const finalized = userClosures.filter(c => c.status === 'finalized' || c.status === 'deposited');
+
+  // Build available tabs based on role
+  const availableTabs = useMemo(() => {
+    const tabs: Array<{
+      value: string;
+      label: string;
+      icon: React.ReactNode;
+      badge?: React.ReactNode;
+    }> = [];
+
+    if (isCashier) {
+      tabs.push({
+        value: "my-submissions",
+        label: "My Submissions",
+        icon: <FileText className="w-4 h-4" />,
+        badge: userClosures.length > 0 ? (
+          <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary text-primary-foreground rounded">
+            {userClosures.length}
+          </span>
+        ) : undefined,
+      });
+    }
+
+    if (isSupervisorOnly || isAdmin) {
+      tabs.push({
+        value: "pending",
+        label: "Pending Supervisor",
+        icon: <Clock className="w-4 h-4" />,
+        badge: pendingSupervisor.length > 0 ? (
+          <span className="ml-1 px-1.5 py-0.5 text-xs bg-amber text-foreground rounded">
+            {pendingSupervisor.length}
+          </span>
+        ) : undefined,
+      });
+    }
+
+    if (isAccountantOnly || isAdmin) {
+      tabs.push({
+        value: "approved",
+        label: "Pending Accountant",
+        icon: <AlertTriangle className="w-4 h-4" />,
+        badge: pendingAccountant.length > 0 ? (
+          <span className="ml-1 px-1.5 py-0.5 text-xs bg-status-partial text-foreground rounded">
+            {pendingAccountant.length}
+          </span>
+        ) : undefined,
+      });
+
+      tabs.push({
+        value: "finalized",
+        label: "Finalized",
+        icon: <CheckCircle2 className="w-4 h-4" />,
+      });
+    }
+
+    if (isAdmin) {
+      tabs.push({
+        value: "history",
+        label: "Deposit History",
+        icon: <History className="w-4 h-4" />,
+      });
+    }
+
+    return tabs;
+  }, [isCashier, isSupervisorOnly, isAccountantOnly, isAdmin, userClosures.length, pendingSupervisor.length, pendingAccountant.length]);
 
   // Get payments for a specific cashier on a specific date
   const getClosurePayments = (cashierId: string, date: string): Payment[] => {
@@ -239,34 +304,34 @@ export function VerificationPage() {
         </div>
       </div>
 
-      {/* Workflow Diagram */}
-      <Card className="p-4">
-        <div className="flex items-center justify-center gap-4 text-sm">
+      {/* Workflow Diagram - Hidden on mobile for space */}
+      <Card className="p-3 sm:p-4 hidden sm:block">
+        <div className="flex items-center justify-center gap-2 sm:gap-4 text-sm">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-amber/20 flex items-center justify-center">
               <DollarSign className="w-4 h-4 text-amber" />
             </div>
-            <div>
+            <div className="hidden md:block">
               <p className="font-medium">Cashier</p>
               <p className="text-xs text-muted-foreground">Daily Closure</p>
             </div>
           </div>
-          <div className="w-8 h-[2px] bg-border" />
+          <div className="w-4 sm:w-8 h-[2px] bg-border" />
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-status-partial/20 flex items-center justify-center">
               <CheckCircle2 className="w-4 h-4 text-status-partial" />
             </div>
-            <div>
+            <div className="hidden md:block">
               <p className="font-medium">Supervisor</p>
               <p className="text-xs text-muted-foreground">Verify & Approve</p>
             </div>
           </div>
-          <div className="w-8 h-[2px] bg-border" />
+          <div className="w-4 sm:w-8 h-[2px] bg-border" />
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
               <Building2 className="w-4 h-4 text-accent" />
             </div>
-            <div>
+            <div className="hidden md:block">
               <p className="font-medium">Accountant</p>
               <p className="text-xs text-muted-foreground">Finalize & Deposit</p>
             </div>
@@ -275,70 +340,10 @@ export function VerificationPage() {
       </Card>
 
       {/* Verification Queues */}
-      <Tabs defaultValue={isCashier ? "my-submissions" : isSupervisorOnly ? "pending" : isAccountantOnly ? "approved" : "pending"} className="space-y-4">
-        <div className="overflow-x-auto -mx-1 px-1">
-          <TabsList className="inline-flex w-auto min-w-full md:w-auto gap-1">
-            {/* Cashier: My Submissions */}
-            {isCashier && (
-              <TabsTrigger value="my-submissions" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
-                <FileText className="w-4 h-4" />
-                <span className="hidden sm:inline">My Submissions</span>
-                <span className="sm:hidden">My Subs</span>
-                {userClosures.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xxs bg-primary text-primary-foreground rounded">
-                    {userClosures.length}
-                  </span>
-                )}
-              </TabsTrigger>
-            )}
-            
-            {/* Supervisor: Pending Supervisor Queue */}
-            {(isSupervisorOnly || isAdmin) && (
-              <TabsTrigger value="pending" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
-                <Clock className="w-4 h-4" />
-                <span className="hidden sm:inline">Pending Supervisor</span>
-                <span className="sm:hidden">Supervisor</span>
-                {pendingSupervisor.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xxs bg-amber text-foreground rounded">
-                    {pendingSupervisor.length}
-                  </span>
-                )}
-              </TabsTrigger>
-            )}
-            
-            {/* Accountant: Pending Accountant Queue */}
-            {(isAccountantOnly || isAdmin) && (
-              <TabsTrigger value="approved" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
-                <AlertTriangle className="w-4 h-4" />
-                <span className="hidden sm:inline">Pending Accountant</span>
-                <span className="sm:hidden">Accountant</span>
-                {pendingAccountant.length > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 text-xxs bg-status-partial text-foreground rounded">
-                    {pendingAccountant.length}
-                  </span>
-                )}
-              </TabsTrigger>
-            )}
-            
-            {/* Accountant: Finalized */}
-            {(isAccountantOnly || isAdmin) && (
-              <TabsTrigger value="finalized" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
-                <CheckCircle2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Finalized</span>
-                <span className="sm:hidden">Final</span>
-              </TabsTrigger>
-            )}
-            
-            {/* Admin only: Deposit History */}
-            {isAdmin && (
-              <TabsTrigger value="history" className="gap-1 sm:gap-2 text-xs sm:text-sm flex-shrink-0">
-                <History className="w-4 h-4" />
-                <span className="hidden sm:inline">Deposit History</span>
-                <span className="sm:hidden">History</span>
-              </TabsTrigger>
-            )}
-          </TabsList>
-        </div>
+      <MobileTabs
+        tabs={availableTabs}
+        defaultValue={isCashier ? "my-submissions" : isSupervisorOnly ? "pending" : isAccountantOnly ? "approved" : "pending"}
+      >
 
         {/* Cashier: My Submissions */}
         {isCashier && (
@@ -457,7 +462,7 @@ export function VerificationPage() {
           </Card>
         </TabsContent>
         )}
-      </Tabs>
+      </MobileTabs>
 
       {/* Verification Action Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
