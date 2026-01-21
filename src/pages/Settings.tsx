@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MobileTabs, TabsContent } from '@/components/ui/mobile-tabs';
 import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -328,17 +328,17 @@ export function SettingsPage() {
         <Button variant="enterprise" size="sm"><Save className="w-4 h-4" />Save Changes</Button>
       </div>
 
-      <Tabs defaultValue="school" className="space-y-4">
-        <div className="overflow-x-auto -mx-1 px-1">
-          <TabsList className="inline-flex w-auto min-w-full md:w-auto gap-1">
-            <TabsTrigger value="school" className="text-xs sm:text-sm flex-shrink-0"><Building2 className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">School Info</span><span className="sm:hidden">School</span></TabsTrigger>
-            <TabsTrigger value="academic" className="text-xs sm:text-sm flex-shrink-0"><Calendar className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Academic Year</span><span className="sm:hidden">Year</span></TabsTrigger>
-            <TabsTrigger value="levels" className="text-xs sm:text-sm flex-shrink-0"><Layers className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Levels & Classes</span><span className="sm:hidden">Levels</span></TabsTrigger>
-            <TabsTrigger value="transport" className="text-xs sm:text-sm flex-shrink-0"><Bus className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Transport</span><span className="sm:hidden">Trans</span></TabsTrigger>
-            <TabsTrigger value="fees" className="text-xs sm:text-sm flex-shrink-0"><DollarSign className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Fee Structures</span><span className="sm:hidden">Fees</span></TabsTrigger>
-            <TabsTrigger value="discounts" className="text-xs sm:text-sm flex-shrink-0"><Percent className="w-4 h-4 sm:mr-2" /><span className="hidden sm:inline">Discounts</span><span className="sm:hidden">Disc</span></TabsTrigger>
-          </TabsList>
-        </div>
+      <MobileTabs
+        tabs={[
+          { value: "school", label: "School Info", icon: <Building2 className="w-4 h-4" /> },
+          { value: "academic", label: "Academic Year", icon: <Calendar className="w-4 h-4" /> },
+          { value: "levels", label: "Levels & Classes", icon: <Layers className="w-4 h-4" /> },
+          { value: "transport", label: "Transport", icon: <Bus className="w-4 h-4" /> },
+          { value: "fees", label: "Fee Structures", icon: <DollarSign className="w-4 h-4" /> },
+          { value: "discounts", label: "Discounts", icon: <Percent className="w-4 h-4" /> },
+        ]}
+        defaultValue="school"
+      >
 
         {/* School Info */}
         <TabsContent value="school">
@@ -789,7 +789,7 @@ export function SettingsPage() {
             </div>
           </Card>
         </TabsContent>
-      </Tabs>
+      </MobileTabs>
 
       {/* Level Dialog */}
       <Dialog open={isLevelDialogOpen} onOpenChange={setIsLevelDialogOpen}>
