@@ -77,14 +77,53 @@ function ParentRoute() {
 function AppRoutes() {
   const { currentUser } = useApp();
 
+  // If not logged in, show login page
+  if (!currentUser) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
+
+  // If parent, show parent portal
+  if (currentUser.role === 'parent') {
+    return (
+      <Routes>
+        <Route path="/parent" element={<ParentPortal />} />
+        <Route path="/login" element={<Navigate to="/parent" replace />} />
+        <Route path="*" element={<Navigate to="/parent" replace />} />
+      </Routes>
+    );
+  }
+
+  // Staff routes
   return (
     <Routes>
-      <Route 
-        path="/login" 
-        element={currentUser ? (currentUser.role === 'parent' ? <Navigate to="/parent" replace /> : <Navigate to="/" replace />) : <Login />} 
-      />
-      <Route path="/parent" element={<ParentRoute />} />
-      <Route path="/*" element={<ProtectedRoutes />} />
+      <Route path="/login" element={<Navigate to="/" replace />} />
+      <Route path="/parent" element={<Navigate to="/" replace />} />
+      <Route path="/*" element={
+        <AppLayout>
+          <Routes>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/students" element={<StudentsPage />} />
+            <Route path="/students/:id" element={<StudentProfile />} />
+            <Route path="/attendance" element={<AttendancePage />} />
+            <Route path="/verification" element={<VerificationPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/id-cards" element={<IDCardsPage />} />
+            <Route path="/tickets" element={<TicketsPage />} />
+            <Route path="/hr/employees" element={<HREmployeesPage />} />
+            <Route path="/hr/leave" element={<HRLeavePage />} />
+            <Route path="/hr/overtime" element={<HROvertimePage />} />
+            <Route path="/hr/payroll" element={<HRPayrollPage />} />
+            <Route path="/users" element={<UserManagement />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </AppLayout>
+      } />
     </Routes>
   );
 }
