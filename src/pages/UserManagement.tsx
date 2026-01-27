@@ -73,6 +73,7 @@ const roleColors: Record<UserRole, string> = {
   supervisor: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
   cashier: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
   accountant: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  parent: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
 };
 
 const defaultPermissions: Record<UserRole, string[]> = {
@@ -80,6 +81,7 @@ const defaultPermissions: Record<UserRole, string[]> = {
   supervisor: ['dashboard', 'students', 'attendance', 'verification', 'reports', 'tickets', 'hr'],
   cashier: ['dashboard', 'students', 'fees', 'attendance'],
   accountant: ['dashboard', 'verification', 'reports', 'hr'],
+  parent: [],
 };
 
 const UserManagement = () => {

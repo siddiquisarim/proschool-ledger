@@ -466,7 +466,7 @@ export function VerificationPage() {
 
         {/* Reports Tab */}
         <TabsContent value="reports">
-          <VerificationModuleReports role={currentUser?.role || 'cashier'} />
+          <VerificationModuleReports role={(currentUser?.role === 'parent' ? 'cashier' : currentUser?.role) || 'cashier'} />
         </TabsContent>
       </MobileTabs>
 
