@@ -26,7 +26,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { Search, Plus, MoreHorizontal, Eye, Edit, Trash2, Download, User, Users, GraduationCap, FileText, Heart, UserPlus, UserX, UserCheck } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, Eye, Edit, Trash2, Download, User, Users, GraduationCap, FileText, Heart, UserPlus, UserX, UserCheck, BarChart3 } from 'lucide-react';
 import { mockStudents, mockPayments, mockFeeStructures } from '@/data/mockData';
 import { mockLevels } from '@/data/settingsData';
 import { cn } from '@/lib/utils';
@@ -41,6 +41,8 @@ import { AcademicFeesTab } from '@/components/students/AcademicFeesTab';
 import { StatementTab } from '@/components/students/StatementTab';
 import { MedicalHistoryTab } from '@/components/students/MedicalHistoryTab';
 import { RelatedStudentsTab } from '@/components/students/RelatedStudentsTab';
+import { StudentModuleReports } from '@/components/reports/StudentModuleReports';
+import { MobileTabs } from '@/components/ui/mobile-tabs';
 
 export function StudentsPage() {
   const { t } = useApp();
@@ -100,6 +102,11 @@ export function StudentsPage() {
     ));
   };
 
+  const mainTabs = [
+    { value: 'list', label: 'Student List', icon: <Users className="w-4 h-4" /> },
+    { value: 'reports', label: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
+  ];
+
   return (
     <div className="space-y-4 animate-fade-in">
       <div className="flex items-center justify-between">
@@ -123,6 +130,8 @@ export function StudentsPage() {
         </div>
       </div>
 
+      <MobileTabs tabs={mainTabs} defaultValue="list">
+        <TabsContent value="list" className="space-y-4 mt-4">
       <Card className="p-4">
         <div className="flex flex-wrap items-center gap-4">
           <div className="flex-1 min-w-[200px]">
@@ -253,6 +262,12 @@ export function StudentsPage() {
           <Button variant="outline" size="sm" disabled>Next</Button>
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="reports" className="mt-4">
+          <StudentModuleReports />
+        </TabsContent>
+      </MobileTabs>
 
       {/* View/Edit Student Dialog */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>

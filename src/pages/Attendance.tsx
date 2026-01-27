@@ -23,10 +23,14 @@ import {
   Save,
   Users,
   GraduationCap,
+  BarChart3,
 } from 'lucide-react';
 import { mockStudents, mockTeachers, mockAttendance } from '@/data/mockData';
 import { mockLevels, mockAcademicClasses } from '@/data/settingsData';
 import { AttendanceRecord } from '@/types';
+import { MobileTabs } from '@/components/ui/mobile-tabs';
+import { AttendanceModuleReports } from '@/components/reports/AttendanceModuleReports';
+import React from 'react';
 
 type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 
@@ -135,6 +139,11 @@ export function AttendancePage() {
     setClassFilter('all');
   };
 
+  const mainTabs = [
+    { value: 'mark', label: 'Mark Attendance', icon: <CalendarIcon className="w-4 h-4" /> },
+    { value: 'reports', label: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
+  ];
+
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Page Header */}
@@ -150,6 +159,9 @@ export function AttendancePage() {
           Save Attendance
         </Button>
       </div>
+
+      <MobileTabs tabs={mainTabs} defaultValue="mark">
+        <TabsContent value="mark" className="space-y-4 mt-4">
 
       {/* Future Date Warning */}
       {isFutureDate && (
@@ -332,9 +344,12 @@ export function AttendancePage() {
           </table>
         </div>
       </Card>
+        </TabsContent>
+
+        <TabsContent value="reports" className="mt-4">
+          <AttendanceModuleReports />
+        </TabsContent>
+      </MobileTabs>
     </div>
   );
 }
-
-// Need to import React for createElement
-import React from 'react';

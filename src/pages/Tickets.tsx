@@ -11,10 +11,11 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MobileTabs, TabsContent } from '@/components/ui/mobile-tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Plus, Eye, CheckCircle, XCircle, Clock, History, Users, User } from 'lucide-react';
+import { Plus, Eye, CheckCircle, XCircle, Clock, History, Users, User, BarChart3, Ticket as TicketIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import { TicketsModuleReports } from '@/components/reports/TicketsModuleReports';
 
 const categories: { value: TicketCategory; label: string }[] = [
   { value: 'technical', label: 'Technical' },
@@ -133,6 +134,11 @@ export function TicketsPage() {
     setResolveReason('');
   };
 
+  const mainTabs = [
+    { value: 'list', label: 'All Tickets', icon: <TicketIcon className="w-4 h-4" /> },
+    { value: 'reports', label: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -236,16 +242,23 @@ export function TicketsPage() {
         </Dialog>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="all">All Tickets</TabsTrigger>
-          <TabsTrigger value="my">My Assigned</TabsTrigger>
-          <TabsTrigger value="pending">Pending</TabsTrigger>
-          <TabsTrigger value="approved">Approved</TabsTrigger>
-          <TabsTrigger value="solved">Solved</TabsTrigger>
-        </TabsList>
+      <MobileTabs tabs={mainTabs} defaultValue="list">
+        <TabsContent value="list" className="mt-4">
+          {/* Filter tabs for ticket status */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {['all', 'my', 'pending', 'approved', 'solved'].map((tab) => (
+              <Button
+                key={tab}
+                variant={activeTab === tab ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setActiveTab(tab)}
+                className="capitalize"
+              >
+                {tab === 'my' ? 'My Assigned' : tab}
+              </Button>
+            ))}
+          </div>
 
-        <TabsContent value={activeTab} className="mt-4">
           <Card>
             <CardContent className="p-0">
               <Table>
@@ -342,7 +355,11 @@ export function TicketsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+
+        <TabsContent value="reports" className="mt-4">
+          <TicketsModuleReports />
+        </TabsContent>
+      </MobileTabs>
 
       {/* Ticket Detail Dialog */}
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>

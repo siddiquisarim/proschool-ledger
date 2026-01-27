@@ -10,7 +10,9 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Edit, Eye, Search, Users, Briefcase, Clock, DollarSign } from 'lucide-react';
+import { MobileTabs, TabsContent } from '@/components/ui/mobile-tabs';
+import { Plus, Edit, Eye, Search, Users, Briefcase, Clock, DollarSign, BarChart3 } from 'lucide-react';
+import { EmployeeDetailsReport } from '@/components/reports/HRModuleReports';
 
 const employmentTypes: { value: EmploymentType; label: string }[] = [
   { value: 'full_time', label: 'Full Time' },
@@ -100,6 +102,11 @@ export function HREmployeesPage() {
     departments: [...new Set(employees.map(e => e.department))].length,
   };
 
+  const mainTabs = [
+    { value: 'list', label: 'Employee List', icon: <Users className="w-4 h-4" /> },
+    { value: 'reports', label: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -183,42 +190,44 @@ export function HREmployeesPage() {
         )}
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 bg-primary/10 rounded-lg">
-              <Users className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.total}</p>
-              <p className="text-sm text-muted-foreground">Total Employees</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 bg-emerald-500/10 rounded-lg">
-              <Briefcase className="w-6 h-6 text-emerald-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.active}</p>
-              <p className="text-sm text-muted-foreground">Active Employees</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-4">
-            <div className="p-3 bg-blue-500/10 rounded-lg">
-              <Clock className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{stats.departments}</p>
-              <p className="text-sm text-muted-foreground">Departments</p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <MobileTabs tabs={mainTabs} defaultValue="list">
+        <TabsContent value="list" className="space-y-6 mt-4">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-lg">
+                  <Users className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.total}</p>
+                  <p className="text-sm text-muted-foreground">Total Employees</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="p-3 bg-emerald-500/10 rounded-lg">
+                  <Briefcase className="w-6 h-6 text-emerald-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.active}</p>
+                  <p className="text-sm text-muted-foreground">Active Employees</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="p-3 bg-blue-500/10 rounded-lg">
+                  <Clock className="w-6 h-6 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{stats.departments}</p>
+                  <p className="text-sm text-muted-foreground">Departments</p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
       {/* Search and Table */}
       <Card>
@@ -287,8 +296,12 @@ export function HREmployeesPage() {
           </Table>
         </CardContent>
       </Card>
+        </TabsContent>
 
-      {/* Detail Dialog */}
+        <TabsContent value="reports" className="mt-4">
+          <EmployeeDetailsReport />
+        </TabsContent>
+      </MobileTabs>
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
         <DialogContent className="max-w-lg">
           <DialogHeader>

@@ -36,9 +36,11 @@ import {
   Calendar,
   History,
   Receipt,
+  BarChart3,
 } from 'lucide-react';
 import { mockClosures, mockPayments, mockStudents } from '@/data/mockData';
 import { DailyClosure, Payment } from '@/types';
+import { VerificationModuleReports } from '@/components/reports/VerificationModuleReports';
 
 export function VerificationPage() {
   const { currentUser, t } = useApp();
@@ -126,13 +128,12 @@ export function VerificationPage() {
       });
     }
 
-    if (isAdmin) {
-      tabs.push({
-        value: "history",
-        label: "Deposit History",
-        icon: <History className="w-4 h-4" />,
-      });
-    }
+    // Add Reports tab at the end
+    tabs.push({
+      value: "reports",
+      label: "Reports",
+      icon: <BarChart3 className="w-4 h-4" />,
+    });
 
     return tabs;
   }, [isCashier, isSupervisorOnly, isAccountantOnly, isAdmin, userClosures.length, pendingSupervisor.length, pendingAccountant.length]);
@@ -462,6 +463,11 @@ export function VerificationPage() {
           </Card>
         </TabsContent>
         )}
+
+        {/* Reports Tab */}
+        <TabsContent value="reports">
+          <VerificationModuleReports role={currentUser?.role || 'cashier'} />
+        </TabsContent>
       </MobileTabs>
 
       {/* Verification Action Dialog */}
