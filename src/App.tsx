@@ -20,6 +20,7 @@ import { HROvertimePage } from "@/pages/HROvertime";
 import { HRPayrollPage } from "@/pages/HRPayroll";
 import Login from "@/pages/Login";
 import UserManagement from "@/pages/UserManagement";
+import ParentPortal from "@/pages/ParentPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,11 @@ function ProtectedRoutes() {
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
+  }
+
+  // Redirect parent users to parent portal
+  if (currentUser.role === 'parent') {
+    return <Navigate to="/parent" replace />;
   }
 
   return (
@@ -54,6 +60,20 @@ function ProtectedRoutes() {
   );
 }
 
+function ParentRoute() {
+  const { currentUser } = useApp();
+
+  if (!currentUser) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (currentUser.role !== 'parent') {
+    return <Navigate to="/" replace />;
+  }
+
+  return <ParentPortal />;
+}
+
 function AppRoutes() {
   const { currentUser } = useApp();
 
@@ -61,8 +81,9 @@ function AppRoutes() {
     <Routes>
       <Route 
         path="/login" 
-        element={currentUser ? <Navigate to="/" replace /> : <Login />} 
+        element={currentUser ? (currentUser.role === 'parent' ? <Navigate to="/parent" replace /> : <Navigate to="/" replace />) : <Login />} 
       />
+      <Route path="/parent" element={<ParentRoute />} />
       <Route path="/*" element={<ProtectedRoutes />} />
     </Routes>
   );

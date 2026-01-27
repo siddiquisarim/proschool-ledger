@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock, Mail, GraduationCap } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, GraduationCap, Users, Briefcase } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useApp } from '@/contexts/AppContext';
 
 const Login = () => {
@@ -15,29 +16,39 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loginType, setLoginType] = useState<'staff' | 'parent'>('staff');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setIsLoading(true);
 
-    // Mock login - replace with actual authentication
     setTimeout(() => {
-      // Demo: accept any email/password for testing
       if (email && password) {
-        // Mock user based on email
-        const role = email.includes('admin') ? 'admin' 
-          : email.includes('supervisor') ? 'supervisor'
-          : email.includes('accountant') ? 'accountant'
-          : 'cashier';
-        
-        setCurrentUser({
-          id: '1',
-          name: email.split('@')[0],
-          email: email,
-          role: role,
-        });
-        navigate('/');
+        if (loginType === 'parent') {
+          // Parent login
+          setCurrentUser({
+            id: 'parent-1',
+            name: email.split('@')[0],
+            email: email,
+            role: 'parent',
+          });
+          navigate('/parent');
+        } else {
+          // Staff login
+          const role = email.includes('admin') ? 'admin' 
+            : email.includes('supervisor') ? 'supervisor'
+            : email.includes('accountant') ? 'accountant'
+            : 'cashier';
+          
+          setCurrentUser({
+            id: '1',
+            name: email.split('@')[0],
+            email: email,
+            role: role,
+          });
+          navigate('/');
+        }
       } else {
         setError('Please enter email and password');
       }
@@ -61,10 +72,23 @@ const Login = () => {
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-xl font-semibold">{t('login')}</CardTitle>
             <CardDescription>
-              Enter your credentials to access the system
+              Select your login type and enter credentials
             </CardDescription>
           </CardHeader>
           <CardContent>
+            <Tabs value={loginType} onValueChange={(v) => setLoginType(v as 'staff' | 'parent')} className="mb-4">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="staff" className="gap-2">
+                  <Briefcase className="w-4 h-4" />
+                  Staff Login
+                </TabsTrigger>
+                <TabsTrigger value="parent" className="gap-2">
+                  <Users className="w-4 h-4" />
+                  Parent Login
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+
             <form onSubmit={handleLogin} className="space-y-4">
               {error && (
                 <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
@@ -79,7 +103,7 @@ const Login = () => {
                   <Input
                     id="email"
                     type="email"
-                    placeholder="admin@school.edu"
+                    placeholder={loginType === 'parent' ? 'parent@email.com' : 'admin@school.edu'}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="pl-10"
@@ -126,8 +150,17 @@ const Login = () => {
               </Button>
 
               <div className="text-xs text-muted-foreground text-center mt-4 p-3 bg-muted/50 rounded-md">
-                <p className="font-medium mb-1">Demo Credentials:</p>
-                <p>Use any email with role keywords: admin@, supervisor@, accountant@, cashier@</p>
+                {loginType === 'staff' ? (
+                  <>
+                    <p className="font-medium mb-1">Staff Demo Credentials:</p>
+                    <p>Use emails with role keywords: admin@, supervisor@, accountant@, cashier@</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="font-medium mb-1">Parent Demo Credentials:</p>
+                    <p>Use any email to access the parent portal</p>
+                  </>
+                )}
               </div>
             </form>
           </CardContent>
