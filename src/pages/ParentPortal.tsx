@@ -122,7 +122,7 @@ const mockAnnouncements = [
 ];
 
 const ParentPortal = () => {
-  const { currentUser, setCurrentUser, language, setLanguage, isRTL } = useApp();
+  const { currentUser, setCurrentUser, language, setLanguage, isRTL, t } = useApp();
   const [selectedChild, setSelectedChild] = React.useState(mockChildren[0]);
 
   const handleLogout = () => {
@@ -132,11 +132,11 @@ const ParentPortal = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'paid':
-        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Paid</Badge>;
+        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">{t('common.paid')}</Badge>;
       case 'partial':
-        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Partial</Badge>;
+        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">{t('fee.partial')}</Badge>;
       case 'pending':
-        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">Pending</Badge>;
+        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">{t('common.pending')}</Badge>;
       default:
         return null;
     }
@@ -158,27 +158,27 @@ const ParentPortal = () => {
       {/* Header */}
       <header className="sticky top-0 z-50 bg-card border-b border-border">
         <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
             <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center">
               <GraduationCap className="w-5 h-5 text-primary-foreground" />
             </div>
-            <div>
-              <h1 className="font-semibold text-foreground">Parent Portal</h1>
-              <p className="text-xs text-muted-foreground">Welcome, {currentUser?.name}</p>
+            <div className={isRTL ? "text-right" : "text-left"}>
+              <h1 className="font-semibold text-foreground">{t('parent.portal')}</h1>
+              <p className="text-xs text-muted-foreground">{t('parent.welcome')}, {currentUser?.name}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
             >
               <Languages className="w-4 h-4" />
-              <span className="ml-1 text-xs">{language === 'en' ? 'AR' : 'EN'}</span>
+              <span className={cn("text-xs", isRTL ? "mr-1" : "ml-1")}>{language === 'en' ? 'AR' : 'EN'}</span>
             </Button>
             <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="w-4 h-4 mr-1" />
-              <span className="hidden sm:inline">Logout</span>
+              <LogOut className={cn("w-4 h-4", isRTL ? "ml-1" : "mr-1")} />
+              <span className="hidden sm:inline">{t('common.logout')}</span>
             </Button>
           </div>
         </div>
@@ -187,7 +187,7 @@ const ParentPortal = () => {
       <main className="container mx-auto px-4 py-6 space-y-6">
         {/* Child Selector */}
         {mockChildren.length > 1 && (
-          <div className="flex gap-2 overflow-x-auto pb-2">
+          <div className={cn("flex gap-2 overflow-x-auto pb-2", isRTL && "flex-row-reverse")}>
             {mockChildren.map((child) => (
               <Button
                 key={child.id}
@@ -196,7 +196,7 @@ const ParentPortal = () => {
                 onClick={() => setSelectedChild(child)}
                 className="shrink-0"
               >
-                <User className="w-4 h-4 mr-2" />
+                <User className={cn("w-4 h-4", isRTL ? "ml-2" : "mr-2")} />
                 {child.name}
               </Button>
             ))}
@@ -209,32 +209,32 @@ const ParentPortal = () => {
             {/* Student Info Card */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className={cn("flex items-center gap-2 text-lg", isRTL && "flex-row-reverse")}>
                   <User className="w-5 h-5 text-primary" />
-                  Student Information
+                  {t('student.info')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-col sm:flex-row gap-4">
+                <div className={cn("flex flex-col sm:flex-row gap-4", isRTL && "sm:flex-row-reverse")}>
                   <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center shrink-0">
                     <User className="w-10 h-10 text-muted-foreground" />
                   </div>
                   <div className="grid gap-2 flex-1">
                     <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Full Name</p>
+                      <div className={isRTL ? "text-right" : "text-left"}>
+                        <p className="text-xs text-muted-foreground">{t('student.fullName')}</p>
                         <p className="font-medium">{selectedChild.name}</p>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Student ID</p>
+                      <div className={isRTL ? "text-right" : "text-left"}>
+                        <p className="text-xs text-muted-foreground">{t('student.id')}</p>
                         <p className="font-medium">{selectedChild.studentId}</p>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Grade</p>
+                      <div className={isRTL ? "text-right" : "text-left"}>
+                        <p className="text-xs text-muted-foreground">{t('student.grade')}</p>
                         <p className="font-medium">{selectedChild.grade}</p>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Section</p>
+                      <div className={isRTL ? "text-right" : "text-left"}>
+                        <p className="text-xs text-muted-foreground">{t('student.section')}</p>
                         <p className="font-medium">{selectedChild.section}</p>
                       </div>
                     </div>
@@ -246,45 +246,45 @@ const ParentPortal = () => {
             {/* Attendance Card */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className={cn("flex items-center gap-2 text-lg", isRTL && "flex-row-reverse")}>
                   <Calendar className="w-5 h-5 text-primary" />
-                  Attendance Overview
+                  {t('attendance.overview')}
                 </CardTitle>
-                <CardDescription>Current academic year statistics</CardDescription>
+                <CardDescription>{t('attendance.currentYear')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="p-4 rounded-lg bg-green-500/10 text-center">
                     <CheckCircle className="w-6 h-6 text-green-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-green-600">{selectedChild.attendance.present}</p>
-                    <p className="text-xs text-muted-foreground">Present</p>
+                    <p className="text-xs text-muted-foreground">{t('attendance.present')}</p>
                   </div>
                   <div className="p-4 rounded-lg bg-red-500/10 text-center">
                     <XCircle className="w-6 h-6 text-red-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-red-600">{selectedChild.attendance.absent}</p>
-                    <p className="text-xs text-muted-foreground">Absent</p>
+                    <p className="text-xs text-muted-foreground">{t('attendance.absent')}</p>
                   </div>
                   <div className="p-4 rounded-lg bg-yellow-500/10 text-center">
                     <Clock className="w-6 h-6 text-yellow-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-yellow-600">{selectedChild.attendance.late}</p>
-                    <p className="text-xs text-muted-foreground">Late</p>
+                    <p className="text-xs text-muted-foreground">{t('attendance.late')}</p>
                   </div>
                   <div className="p-4 rounded-lg bg-blue-500/10 text-center">
                     <AlertCircle className="w-6 h-6 text-blue-600 mx-auto mb-2" />
                     <p className="text-2xl font-bold text-blue-600">{selectedChild.attendance.excused}</p>
-                    <p className="text-xs text-muted-foreground">Excused</p>
+                    <p className="text-xs text-muted-foreground">{t('attendance.excused')}</p>
                   </div>
                 </div>
                 <div className="mt-4 p-3 rounded-lg bg-muted/50">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Attendance Rate</span>
+                  <div className={cn("flex justify-between items-center", isRTL && "flex-row-reverse")}>
+                    <span className="text-sm text-muted-foreground">{t('attendance.rate')}</span>
                     <span className="font-semibold text-primary">
                       {Math.round((selectedChild.attendance.present / selectedChild.attendance.total) * 100)}%
                     </span>
                   </div>
                   <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
                     <div 
-                      className="h-full bg-primary rounded-full transition-all"
+                      className={cn("h-full bg-primary rounded-full transition-all", isRTL && "ml-auto")}
                       style={{ width: `${(selectedChild.attendance.present / selectedChild.attendance.total) * 100}%` }}
                     />
                   </div>
@@ -295,34 +295,34 @@ const ParentPortal = () => {
             {/* Fee Status Card */}
             <Card>
               <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2 text-lg">
+                <div className={cn("flex items-center justify-between", isRTL && "flex-row-reverse")}>
+                  <CardTitle className={cn("flex items-center gap-2 text-lg", isRTL && "flex-row-reverse")}>
                     <DollarSign className="w-5 h-5 text-primary" />
-                    Fee Status
+                    {t('student.feeStatus')}
                   </CardTitle>
                   {getStatusBadge(selectedChild.fees.status)}
                 </div>
                 <CardDescription>
                   {selectedChild.fees.nextDueDate 
-                    ? `Next payment due: ${selectedChild.fees.nextDueDate}`
-                    : 'All fees are paid'}
+                    ? `${t('fee.nextDue')}: ${selectedChild.fees.nextDueDate}`
+                    : t('fee.allPaid')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-3 gap-4 mb-4">
                   <div className="p-3 rounded-lg bg-muted/50 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">Total Due</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('fee.totalDue')}</p>
                     <p className="font-bold text-lg">${selectedChild.fees.totalDue.toLocaleString()}</p>
                   </div>
                   <div className="p-3 rounded-lg bg-green-500/10 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">Paid</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('common.paid')}</p>
                     <p className="font-bold text-lg text-green-600">${selectedChild.fees.totalPaid.toLocaleString()}</p>
                   </div>
                   <div className={cn(
                     "p-3 rounded-lg text-center",
                     selectedChild.fees.balance > 0 ? "bg-red-500/10" : "bg-green-500/10"
                   )}>
-                    <p className="text-xs text-muted-foreground mb-1">Balance</p>
+                    <p className="text-xs text-muted-foreground mb-1">{t('common.balance')}</p>
                     <p className={cn(
                       "font-bold text-lg",
                       selectedChild.fees.balance > 0 ? "text-red-600" : "text-green-600"
@@ -335,13 +335,13 @@ const ParentPortal = () => {
                 <Separator className="my-4" />
 
                 <div className="space-y-3">
-                  <p className="text-sm font-medium">Fee Breakdown</p>
+                  <p className="text-sm font-medium">{t('fee.breakdown')}</p>
                   {selectedChild.fees.items.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div>
+                    <div key={index} className={cn("flex items-center justify-between p-3 rounded-lg border", isRTL && "flex-row-reverse")}>
+                      <div className={isRTL ? "text-right" : "text-left"}>
                         <p className="font-medium text-sm">{item.name}</p>
                         <p className="text-xs text-muted-foreground">
-                          Paid: ${item.paid.toLocaleString()} of ${item.amount.toLocaleString()}
+                          {t('common.paid')}: ${item.paid.toLocaleString()} {t('common.of')} ${item.amount.toLocaleString()}
                         </p>
                       </div>
                       {getStatusBadge(item.status)}
@@ -356,11 +356,11 @@ const ParentPortal = () => {
           <div className="lg:col-span-1">
             <Card className="h-fit lg:sticky lg:top-20">
               <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-lg">
+                <CardTitle className={cn("flex items-center gap-2 text-lg", isRTL && "flex-row-reverse")}>
                   <Bell className="w-5 h-5 text-primary" />
-                  Notice Board
+                  {t('parent.noticeBoard')}
                 </CardTitle>
-                <CardDescription>Latest announcements and updates</CardDescription>
+                <CardDescription>{t('parent.latestAnnouncements')}</CardDescription>
               </CardHeader>
               <CardContent className="p-0">
                 <ScrollArea className="h-[500px] lg:h-[600px]">
@@ -370,17 +370,18 @@ const ParentPortal = () => {
                         key={announcement.id}
                         className={cn(
                           "p-4 rounded-lg border border-l-4 hover:bg-muted/50 transition-colors cursor-pointer",
-                          getPriorityColor(announcement.priority)
+                          getPriorityColor(announcement.priority),
+                          isRTL && "border-l-0 border-r-4"
                         )}
                       >
-                        <div className="flex items-start justify-between gap-2 mb-2">
+                        <div className={cn("flex items-start justify-between gap-2 mb-2", isRTL && "flex-row-reverse")}>
                           <Badge variant="secondary" className="text-xs shrink-0">
                             {announcement.category}
                           </Badge>
                           <span className="text-xs text-muted-foreground">{announcement.date}</span>
                         </div>
-                        <h4 className="font-medium text-sm mb-1">{announcement.title}</h4>
-                        <p className="text-xs text-muted-foreground line-clamp-2">
+                        <h4 className={cn("font-medium text-sm mb-1", isRTL && "text-right")}>{announcement.title}</h4>
+                        <p className={cn("text-xs text-muted-foreground line-clamp-2", isRTL && "text-right")}>
                           {announcement.content}
                         </p>
                       </div>

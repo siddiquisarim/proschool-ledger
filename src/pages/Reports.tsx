@@ -1,27 +1,26 @@
-import { useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
-import { Card } from '@/components/ui/card';
 import { MobileTabs, TabsContent } from '@/components/ui/mobile-tabs';
 import { DollarSign, ClipboardCheck } from 'lucide-react';
 import { FinancialReports } from '@/components/reports/FinancialReports';
 import { SupervisorReports } from '@/components/reports/SupervisorReports';
-
-const reportCategories = [
-  { value: 'financial', label: 'Financial Reports', icon: <DollarSign className="w-4 h-4" /> },
-  { value: 'supervisor', label: 'Supervisor Reports', icon: <ClipboardCheck className="w-4 h-4" /> },
-];
+import { cn } from '@/lib/utils';
 
 export function ReportsPage() {
-  const { t } = useApp();
+  const { t, isRTL } = useApp();
+
+  const reportCategories = [
+    { value: 'financial', label: t('reports.financial'), icon: <DollarSign className="w-4 h-4" /> },
+    { value: 'supervisor', label: t('reports.supervisor'), icon: <ClipboardCheck className="w-4 h-4" /> },
+  ];
 
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
-        <div>
+      <div className={cn("flex items-center justify-between", isRTL && "flex-row-reverse")}>
+        <div className={isRTL ? "text-right" : "text-left"}>
           <h1 className="text-xl font-semibold">{t('nav.reports')}</h1>
           <p className="text-sm text-muted-foreground">
-            Generate and export financial and academic reports
+            {t('reports.generate')}
           </p>
         </div>
       </div>
