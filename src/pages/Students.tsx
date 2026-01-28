@@ -103,8 +103,8 @@ export function StudentsPage() {
   };
 
   const mainTabs = [
-    { value: 'list', label: 'Student List', icon: <Users className="w-4 h-4" /> },
-    { value: 'reports', label: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
+    { value: 'list', label: t('student.list'), icon: <Users className="w-4 h-4" /> },
+    { value: 'reports', label: t('common.reports'), icon: <BarChart3 className="w-4 h-4" /> },
   ];
 
   return (
@@ -112,10 +112,10 @@ export function StudentsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-semibold">{t('student.list')}</h1>
-          <p className="text-sm text-muted-foreground">Manage student records, enrollments, and fee status</p>
+          <p className="text-sm text-muted-foreground">{t('student.manageRecords')}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm"><Download className="w-4 h-4" />Export</Button>
+          <Button variant="outline" size="sm"><Download className="w-4 h-4" />{t('common.export')}</Button>
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="enterprise" size="sm"><Plus className="w-4 h-4" />{t('student.add')}</Button>
@@ -137,24 +137,24 @@ export function StudentsPage() {
           <div className="flex-1 min-w-[200px]">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input placeholder="Search by name or ID..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-9" />
+              <Input placeholder={t('common.search') + '...'} value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9 h-9" />
             </div>
           </div>
           <Select value={levelFilter} onValueChange={setLevelFilter}>
-            <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder="All Levels" /></SelectTrigger>
+            <SelectTrigger className="w-[150px] h-9"><SelectValue placeholder={t('common.all') + ' ' + t('student.level')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Levels</SelectItem>
+              <SelectItem value="all">{t('common.all')} {t('student.level')}</SelectItem>
               {mockLevels.filter(l => l.isActive).map(level => (
                 <SelectItem key={level.id} value={level.name}>{level.name}</SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder="All Status" /></SelectTrigger>
+            <SelectTrigger className="w-[140px] h-9"><SelectValue placeholder={t('common.all') + ' ' + t('common.status')} /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
+              <SelectItem value="all">{t('common.all')} {t('common.status')}</SelectItem>
+              <SelectItem value="active">{t('common.active')}</SelectItem>
+              <SelectItem value="inactive">{t('common.inactive')}</SelectItem>
               <SelectItem value="graduated">Graduated</SelectItem>
               <SelectItem value="transferred">Transferred</SelectItem>
             </SelectContent>
@@ -169,11 +169,11 @@ export function StudentsPage() {
               <tr>
                 <th>{t('student.id')}</th>
                 <th>{t('student.name')}</th>
-                <th>Level</th>
-                <th>Parent Contact</th>
-                <th>Status</th>
-                <th>Fee Status</th>
-                <th>Balance</th>
+                <th>{t('student.level')}</th>
+                <th>{t('student.parentContact')}</th>
+                <th>{t('common.status')}</th>
+                <th>{t('student.feeStatus')}</th>
+                <th>{t('common.balance')}</th>
                 <th className="w-12">{t('common.actions')}</th>
               </tr>
             </thead>
@@ -220,26 +220,26 @@ export function StudentsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleViewStudent(student)}>
-                            <Eye className="w-4 h-4 mr-2" />View Profile
+                            <Eye className="w-4 h-4 mr-2" />{t('common.view')} {t('student.profile')}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => navigate(`/students/${student.id}`)}>
-                            <Edit className="w-4 h-4 mr-2" />Edit
+                            <Edit className="w-4 h-4 mr-2" />{t('common.edit')}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => handleToggleStatus(student.id)}>
                             {student.status === 'active' ? (
                               <>
-                                <UserX className="w-4 h-4 mr-2" />Set Inactive
+                                <UserX className="w-4 h-4 mr-2" />{t('common.inactive')}
                               </>
                             ) : (
                               <>
-                                <UserCheck className="w-4 h-4 mr-2" />Set Active
+                                <UserCheck className="w-4 h-4 mr-2" />{t('common.active')}
                               </>
                             )}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem className="text-destructive">
-                            <Trash2 className="w-4 h-4 mr-2" />Delete
+                            <Trash2 className="w-4 h-4 mr-2" />{t('common.delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -251,15 +251,15 @@ export function StudentsPage() {
           </table>
         </div>
         {filteredStudents.length === 0 && (
-          <div className="p-8 text-center text-muted-foreground"><p className="text-sm">No students found matching your criteria</p></div>
+          <div className="p-8 text-center text-muted-foreground"><p className="text-sm">{t('common.noData')}</p></div>
         )}
       </Card>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <p>Showing {filteredStudents.length} of {students.length} students</p>
+        <p>{t('common.showing')} {filteredStudents.length} {t('common.of')} {students.length}</p>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" disabled>Previous</Button>
-          <Button variant="outline" size="sm" disabled>Next</Button>
+          <Button variant="outline" size="sm" disabled>{t('common.previous')}</Button>
+          <Button variant="outline" size="sm" disabled>{t('common.next')}</Button>
         </div>
       </div>
         </TabsContent>

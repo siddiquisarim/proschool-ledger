@@ -70,7 +70,7 @@ export function AppHeader() {
                   currentUser?.role === role && "bg-secondary"
                 )}
               >
-                {label}
+                {t(`role.${role}`)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -87,14 +87,14 @@ export function AppHeader() {
           </DropdownMenuTrigger>
           <DropdownMenuContent align={isRTL ? "start" : "end"} className="bg-background z-50">
             <DropdownMenuLabel>
-              <div>
+              <div className={isRTL ? "text-right" : "text-left"}>
                 <p className="text-sm font-medium">{currentUser?.name}</p>
                 <p className="text-xs text-muted-foreground">{currentUser?.email}</p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-sm cursor-pointer">Profile Settings</DropdownMenuItem>
-            <DropdownMenuItem className="text-sm cursor-pointer text-destructive">Sign Out</DropdownMenuItem>
+            <DropdownMenuItem className="text-sm cursor-pointer">{t('common.profile')} {t('common.settings')}</DropdownMenuItem>
+            <DropdownMenuItem className="text-sm cursor-pointer text-destructive">{t('common.logout')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

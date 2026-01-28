@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useApp } from '@/contexts/AppContext';
 import { mockTickets, mockUserGroups } from '@/data/mockData';
 import { Ticket, TicketStatus, TicketCategory } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,25 +16,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Plus, Eye, CheckCircle, XCircle, Clock, History, Users, User, BarChart3, Ticket as TicketIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { TicketsModuleReports } from '@/components/reports/TicketsModuleReports';
-
-const categories: { value: TicketCategory; label: string }[] = [
-  { value: 'technical', label: 'Technical' },
-  { value: 'financial', label: 'Financial' },
-  { value: 'administrative', label: 'Administrative' },
-  { value: 'academic', label: 'Academic' },
-  { value: 'maintenance', label: 'Maintenance' },
-  { value: 'other', label: 'Other' },
-];
-
-const statusConfig: Record<TicketStatus, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
-  pending: { label: 'Pending', variant: 'secondary' },
-  approved: { label: 'Approved', variant: 'default' },
-  solved: { label: 'Solved', variant: 'outline' },
-  closed: { label: 'Closed', variant: 'destructive' },
-};
+import { cn } from '@/lib/utils';
 
 export function TicketsPage() {
-  const { currentUser, t } = useApp();
+  const { currentUser, t, isRTL } = useApp();
   const [tickets, setTickets] = useState<Ticket[]>(mockTickets);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -52,17 +37,29 @@ export function TicketsPage() {
     assignedToGroupId: '',
   });
 
+  const categories: { value: TicketCategory; label: string }[] = [
+    { value: 'technical', label: t('tickets.technical') },
+    { value: 'financial', label: t('tickets.financial') },
+    { value: 'administrative', label: t('tickets.administrative') },
+    { value: 'academic', label: t('tickets.academic') },
+    { value: 'maintenance', label: t('tickets.maintenance') },
+    { value: 'other', label: t('tickets.other') },
+  ];
+
+  const statusConfig: Record<TicketStatus, { label: string; variant: 'default' | 'secondary' | 'outline' | 'destructive' }> = {
+    pending: { label: t('common.pending'), variant: 'secondary' },
+    approved: { label: t('common.approved'), variant: 'default' },
+    solved: { label: t('tickets.solved'), variant: 'outline' },
+    closed: { label: t('tickets.closed'), variant: 'destructive' },
+  };
+
   const isAdmin = currentUser?.role === 'admin';
 
   // Role-based filtering: non-admins see only tickets they created or are assigned to
   const userTickets = tickets.filter(ticket => {
-    // Admin sees all
     if (isAdmin) return true;
-    // User sees tickets they created
     if (ticket.createdBy === currentUser?.id) return true;
-    // User sees tickets assigned to them
     if (ticket.assignedToUserId === currentUser?.id) return true;
-    // User sees tickets assigned to their group
     if (ticket.assignedToGroupId) {
       const group = mockUserGroups.find(g => g.id === ticket.assignedToGroupId);
       if (group?.memberIds.includes(currentUser?.id || '')) return true;
@@ -135,51 +132,51 @@ export function TicketsPage() {
   };
 
   const mainTabs = [
-    { value: 'list', label: 'All Tickets', icon: <TicketIcon className="w-4 h-4" /> },
-    { value: 'reports', label: 'Reports', icon: <BarChart3 className="w-4 h-4" /> },
+    { value: 'list', label: t('tickets.all'), icon: <TicketIcon className="w-4 h-4" /> },
+    { value: 'reports', label: t('common.reports'), icon: <BarChart3 className="w-4 h-4" /> },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Ticket Management</h1>
-          <p className="text-sm text-muted-foreground">Create, assign, and track support tickets</p>
+      <div className={cn("flex items-center justify-between", isRTL && "flex-row-reverse")}>
+        <div className={isRTL ? "text-right" : "text-left"}>
+          <h1 className="text-2xl font-semibold text-foreground">{t('tickets.management')}</h1>
+          <p className="text-sm text-muted-foreground">{t('tickets.createAssignTrack')}</p>
         </div>
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
-              Create Ticket
+              {t('tickets.create')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Create New Ticket</DialogTitle>
+              <DialogTitle>{t('tickets.new')}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label>Title</Label>
+                <Label>{t('common.title')}</Label>
                 <Input 
                   value={newTicket.title} 
                   onChange={(e) => setNewTicket({ ...newTicket, title: e.target.value })}
-                  placeholder="Brief description of the issue"
+                  placeholder={t('tickets.briefDescription')}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Description</Label>
+                <Label>{t('common.description')}</Label>
                 <Textarea 
                   value={newTicket.description} 
                   onChange={(e) => setNewTicket({ ...newTicket, description: e.target.value })}
-                  placeholder="Detailed description of the issue"
+                  placeholder={t('tickets.detailedDescription')}
                   rows={4}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>{t('common.category')}</Label>
                 <Select value={newTicket.category} onValueChange={(v) => setNewTicket({ ...newTicket, category: v as TicketCategory })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder={t('tickets.selectCategory')} />
                   </SelectTrigger>
                   <SelectContent>
                     {categories.map(cat => (
@@ -189,15 +186,15 @@ export function TicketsPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Assign To</Label>
-                <div className="flex gap-2 mb-2">
+                <Label>{t('tickets.assignTo')}</Label>
+                <div className={cn("flex gap-2 mb-2", isRTL && "flex-row-reverse")}>
                   <Button 
                     type="button" 
                     variant={newTicket.assignType === 'user' ? 'default' : 'outline'} 
                     size="sm"
                     onClick={() => setNewTicket({ ...newTicket, assignType: 'user' })}
                   >
-                    <User className="w-4 h-4 mr-1" /> User
+                    <User className={cn("w-4 h-4", isRTL ? "ml-1" : "mr-1")} /> {t('tickets.user')}
                   </Button>
                   <Button 
                     type="button" 
@@ -205,13 +202,13 @@ export function TicketsPage() {
                     size="sm"
                     onClick={() => setNewTicket({ ...newTicket, assignType: 'group' })}
                   >
-                    <Users className="w-4 h-4 mr-1" /> Group
+                    <Users className={cn("w-4 h-4", isRTL ? "ml-1" : "mr-1")} /> {t('tickets.group')}
                   </Button>
                 </div>
                 {newTicket.assignType === 'user' ? (
                   <Select value={newTicket.assignedToUserId} onValueChange={(v) => setNewTicket({ ...newTicket, assignedToUserId: v })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select user" />
+                      <SelectValue placeholder={t('tickets.selectUser')} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="1">Admin User</SelectItem>
@@ -223,7 +220,7 @@ export function TicketsPage() {
                 ) : (
                   <Select value={newTicket.assignedToGroupId} onValueChange={(v) => setNewTicket({ ...newTicket, assignedToGroupId: v })}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select group" />
+                      <SelectValue placeholder={t('tickets.selectGroup')} />
                     </SelectTrigger>
                     <SelectContent>
                       {mockUserGroups.map(group => (
@@ -235,8 +232,8 @@ export function TicketsPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCreateDialog(false)}>Cancel</Button>
-              <Button onClick={handleCreateTicket} disabled={!newTicket.title || !newTicket.category}>Create Ticket</Button>
+              <Button variant="outline" onClick={() => setShowCreateDialog(false)}>{t('common.cancel')}</Button>
+              <Button onClick={handleCreateTicket} disabled={!newTicket.title || !newTicket.category}>{t('tickets.create')}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -245,7 +242,7 @@ export function TicketsPage() {
       <MobileTabs tabs={mainTabs} defaultValue="list">
         <TabsContent value="list" className="mt-4">
           {/* Filter tabs for ticket status */}
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className={cn("flex flex-wrap gap-2 mb-4", isRTL && "flex-row-reverse")}>
             {['all', 'my', 'pending', 'approved', 'solved'].map((tab) => (
               <Button
                 key={tab}
@@ -254,7 +251,11 @@ export function TicketsPage() {
                 onClick={() => setActiveTab(tab)}
                 className="capitalize"
               >
-                {tab === 'my' ? 'My Assigned' : tab}
+                {tab === 'my' ? t('tickets.myAssigned') : 
+                 tab === 'all' ? t('common.all') : 
+                 tab === 'pending' ? t('common.pending') :
+                 tab === 'approved' ? t('common.approved') :
+                 t('tickets.solved')}
               </Button>
             ))}
           </div>
@@ -265,12 +266,12 @@ export function TicketsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>ID</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Assigned To</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t('common.title')}</TableHead>
+                    <TableHead>{t('common.category')}</TableHead>
+                    <TableHead>{t('tickets.assignTo')}</TableHead>
+                    <TableHead>{t('common.status')}</TableHead>
+                    <TableHead>{t('common.created')}</TableHead>
+                    <TableHead className={cn(isRTL ? "text-left" : "text-right")}>{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -283,11 +284,11 @@ export function TicketsPage() {
                       </TableCell>
                       <TableCell>
                         {ticket.assignedToUserId ? (
-                          <span className="flex items-center gap-1 text-sm">
+                          <span className={cn("flex items-center gap-1 text-sm", isRTL && "flex-row-reverse")}>
                             <User className="w-3 h-3" /> User #{ticket.assignedToUserId}
                           </span>
                         ) : ticket.assignedToGroupId ? (
-                          <span className="flex items-center gap-1 text-sm">
+                          <span className={cn("flex items-center gap-1 text-sm", isRTL && "flex-row-reverse")}>
                             <Users className="w-3 h-3" /> {mockUserGroups.find(g => g.id === ticket.assignedToGroupId)?.name}
                           </span>
                         ) : '-'}
@@ -300,8 +301,8 @@ export function TicketsPage() {
                       <TableCell className="text-sm text-muted-foreground">
                         {format(new Date(ticket.createdAt), 'MMM d, yyyy')}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-1">
+                      <TableCell className={cn(isRTL ? "text-left" : "text-right")}>
+                        <div className={cn("flex gap-1", isRTL ? "justify-start" : "justify-end")}>
                           <Button 
                             variant="ghost" 
                             size="sm"
@@ -346,7 +347,7 @@ export function TicketsPage() {
                   {filteredTickets.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                        No tickets found
+                        {t('tickets.noTickets')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -365,42 +366,44 @@ export function TicketsPage() {
       <Dialog open={showDetailDialog} onOpenChange={setShowDetailDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
+            <DialogTitle className={cn("flex items-center gap-2", isRTL && "flex-row-reverse")}>
               <span className="font-mono text-sm text-muted-foreground">{selectedTicket?.id.toUpperCase()}</span>
               {selectedTicket?.title}
             </DialogTitle>
           </DialogHeader>
           {selectedTicket && (
             <div className="space-y-4">
-              <div className="flex gap-2">
+              <div className={cn("flex gap-2", isRTL && "flex-row-reverse")}>
                 <Badge variant={statusConfig[selectedTicket.status].variant}>
                   {statusConfig[selectedTicket.status].label}
                 </Badge>
                 <Badge variant="outline" className="capitalize">{selectedTicket.category}</Badge>
               </div>
               <div>
-                <Label className="text-xs text-muted-foreground">Description</Label>
+                <Label className="text-xs text-muted-foreground">{t('common.description')}</Label>
                 <p className="text-sm mt-1">{selectedTicket.description}</p>
               </div>
               {selectedTicket.resolvedReason && (
                 <div className="p-3 bg-muted rounded-md">
-                  <Label className="text-xs text-muted-foreground">Resolution</Label>
+                  <Label className="text-xs text-muted-foreground">{t('tickets.resolution')}</Label>
                   <p className="text-sm mt-1">{selectedTicket.resolvedReason}</p>
                 </div>
               )}
               <div>
-                <Label className="text-xs text-muted-foreground flex items-center gap-1 mb-2">
-                  <History className="w-3 h-3" /> History
+                <Label className={cn("text-xs text-muted-foreground flex items-center gap-1 mb-2", isRTL && "flex-row-reverse")}>
+                  <History className="w-3 h-3" /> {t('tickets.history')}
                 </Label>
                 <ScrollArea className="h-[200px] border rounded-md p-3">
                   <div className="space-y-3">
                     {selectedTicket.history.map(entry => (
-                      <div key={entry.id} className="flex items-start gap-3 text-sm">
+                      <div key={entry.id} className={cn("flex items-start gap-3 text-sm", isRTL && "flex-row-reverse")}>
                         <Clock className="w-4 h-4 text-muted-foreground mt-0.5" />
-                        <div>
-                          <p><span className="font-medium">{entry.userName}</span> - {entry.action}</p>
-                          {entry.notes && <p className="text-muted-foreground">{entry.notes}</p>}
-                          <p className="text-xs text-muted-foreground">{format(new Date(entry.timestamp), 'MMM d, yyyy HH:mm')}</p>
+                        <div className={isRTL ? "text-right" : "text-left"}>
+                          <p className="font-medium">{entry.action}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {entry.userName} • {format(new Date(entry.timestamp), 'MMM d, yyyy h:mm a')}
+                          </p>
+                          {entry.notes && <p className="text-xs mt-1">{entry.notes}</p>}
                         </div>
                       </div>
                     ))}
@@ -416,23 +419,23 @@ export function TicketsPage() {
       <Dialog open={showResolveDialog} onOpenChange={setShowResolveDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Mark as Solved</DialogTitle>
+            <DialogTitle>{t('tickets.resolution')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Resolution Notes</Label>
+              <Label>{t('tickets.resolution')}</Label>
               <Textarea 
                 value={resolveReason} 
                 onChange={(e) => setResolveReason(e.target.value)}
-                placeholder="Explain how the issue was resolved..."
+                placeholder={t('tickets.detailedDescription')}
                 rows={4}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowResolveDialog(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setShowResolveDialog(false)}>{t('common.cancel')}</Button>
             <Button onClick={() => selectedTicket && handleStatusChange(selectedTicket, 'solved', resolveReason)}>
-              Mark as Solved
+              {t('tickets.solved')}
             </Button>
           </DialogFooter>
         </DialogContent>
