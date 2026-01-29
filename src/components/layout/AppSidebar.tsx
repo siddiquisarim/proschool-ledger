@@ -22,6 +22,7 @@ import {
   DollarSign,
   Menu,
   X,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -49,8 +50,9 @@ const navItems: NavItem[] = [
   { key: 'nav.hrLeave', icon: Calendar, path: '/hr/leave', roles: ['admin', 'supervisor'], section: 'hr' },
   { key: 'nav.hrOvertime', icon: Clock, path: '/hr/overtime', roles: ['admin', 'supervisor', 'accountant'], section: 'hr' },
   { key: 'nav.hrPayroll', icon: DollarSign, path: '/hr/payroll', roles: ['admin', 'accountant'], section: 'hr' },
-  { key: 'nav.users', icon: UserCog, path: '/users', roles: ['admin'] },
-  { key: 'nav.settings', icon: Settings, path: '/settings', roles: ['admin'] },
+  { key: 'nav.auditTrail', icon: ClipboardList, path: '/audit-trail', roles: ['admin'], section: 'admin' },
+  { key: 'nav.users', icon: UserCog, path: '/users', roles: ['admin'], section: 'admin' },
+  { key: 'nav.settings', icon: Settings, path: '/settings', roles: ['admin'], section: 'admin' },
 ];
 
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {

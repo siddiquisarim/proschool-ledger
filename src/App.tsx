@@ -18,6 +18,7 @@ import { HREmployeesPage } from "@/pages/HREmployees";
 import { HRLeavePage } from "@/pages/HRLeave";
 import { HROvertimePage } from "@/pages/HROvertime";
 import { HRPayrollPage } from "@/pages/HRPayroll";
+import { AuditTrailPage } from "@/pages/AuditTrail";
 import Login from "@/pages/Login";
 import UserManagement from "@/pages/UserManagement";
 import ParentPortal from "@/pages/ParentPortal";
@@ -119,6 +120,7 @@ function AppRoutes() {
             <Route path="/hr/leave" element={<HRLeavePage />} />
             <Route path="/hr/overtime" element={<HROvertimePage />} />
             <Route path="/hr/payroll" element={<HRPayrollPage />} />
+            <Route path="/audit-trail" element={<AuditTrailPage />} />
             <Route path="/users" element={<UserManagement />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -235,6 +235,39 @@ export interface PayslipPermission {
 
 export type Language = 'en' | 'ar';
 
+// Audit Trail Types
+export type AuditActionCategory = 
+  | 'authentication' 
+  | 'student' 
+  | 'payment' 
+  | 'discount' 
+  | 'fee' 
+  | 'attendance' 
+  | 'verification' 
+  | 'ticket' 
+  | 'employee' 
+  | 'leave' 
+  | 'overtime' 
+  | 'payroll' 
+  | 'user' 
+  | 'settings';
+
+export interface AuditLog {
+  id: string;
+  timestamp: string;
+  userId: string;
+  userName: string;
+  userRole: string;
+  category: AuditActionCategory;
+  action: string;
+  description: string;
+  entityType?: string;
+  entityId?: string;
+  entityName?: string;
+  details?: string;
+  ipAddress: string;
+}
+
 export interface AppState {
   currentUser: User | null;
   language: Language;
