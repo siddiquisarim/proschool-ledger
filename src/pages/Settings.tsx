@@ -42,7 +42,7 @@ import {
 } from 'lucide-react';
 import { mockSettings, mockFeeStructures } from '@/data/mockData';
 import { mockLevels, mockAcademicClasses, mockTransportLines, mockTransportAreas, mockAcademicYears, mockFeeDiscounts, mockAcademicYearEnrollments, mockFeeTypes, mockPredefinedExtraFees, mockSubjects } from '@/data/settingsData';
-import { Level, AcademicClass, TransportLine, TransportArea, FeeDiscount, ClassStatus, PredefinedExtraFee, ClassSubjectTeacher, Subject } from '@/types/settings';
+import { Level, AcademicClass, TransportLine, TransportArea, FeeDiscount, ClassStatus, PredefinedExtraFee, ClassSubjectTeacher, Subject, FeeType } from '@/types/settings';
 import { mockTeachers } from '@/data/mockData';
 
 export function SettingsPage() {
@@ -66,12 +66,14 @@ export function SettingsPage() {
   const [isDiscountDialogOpen, setIsDiscountDialogOpen] = useState(false);
   const [isExtraFeeDialogOpen, setIsExtraFeeDialogOpen] = useState(false);
   const [isTeacherAssignDialogOpen, setIsTeacherAssignDialogOpen] = useState(false);
+  const [isFeeTypeDialogOpen, setIsFeeTypeDialogOpen] = useState(false);
   const [editingLevel, setEditingLevel] = useState<Level | null>(null);
   const [editingClass, setEditingClass] = useState<AcademicClass | null>(null);
   const [editingTransport, setEditingTransport] = useState<TransportLine | null>(null);
   const [editingArea, setEditingArea] = useState<TransportArea | null>(null);
   const [editingDiscount, setEditingDiscount] = useState<FeeDiscount | null>(null);
   const [editingExtraFee, setEditingExtraFee] = useState<PredefinedExtraFee | null>(null);
+  const [editingFeeType, setEditingFeeType] = useState<FeeType | null>(null);
   const [selectedClassForTeachers, setSelectedClassForTeachers] = useState<AcademicClass | null>(null);
 
   // Form states
@@ -81,6 +83,7 @@ export function SettingsPage() {
   const [areaForm, setAreaForm] = useState({ name: '', fee: 0 });
   const [discountForm, setDiscountForm] = useState({ name: '', description: '', type: 'percentage' as 'percentage' | 'fixed', value: 0, applicableFees: [] as string[] });
   const [extraFeeForm, setExtraFeeForm] = useState({ name: '', amount: 0, description: '' });
+  const [feeTypeForm, setFeeTypeForm] = useState({ name: '', amount: 0, type: 'mandatory' as 'mandatory' | 'monthly', dueDay: undefined as number | undefined });
 
   const handleSettingChange = (key: keyof typeof settings, value: string | number) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -254,6 +257,52 @@ export function SettingsPage() {
       setPredefinedExtraFees([...predefinedExtraFees, newFee]);
     }
     setIsExtraFeeDialogOpen(false);
+  };
+
+  // Fee Type handlers
+  const openFeeTypeDialog = (fee?: typeof feeStructures[0]) => {
+    if (fee) {
+      setEditingFeeType({ 
+        id: fee.id, 
+        name: fee.name, 
+        amount: fee.amount, 
+        category: fee.type === 'mandatory' ? 'mandatory' : 'monthly', 
+        dueDay: fee.dueDay,
+        isActive: true 
+      });
+      setFeeTypeForm({ name: fee.name, amount: fee.amount, type: fee.type, dueDay: fee.dueDay });
+    } else {
+      setEditingFeeType(null);
+      setFeeTypeForm({ name: '', amount: 0, type: 'mandatory', dueDay: undefined });
+    }
+    setIsFeeTypeDialogOpen(true);
+  };
+
+  const saveFeeType = () => {
+    if (editingFeeType) {
+      setFeeStructures(feeStructures.map(f => f.id === editingFeeType.id ? { 
+        ...f, 
+        name: feeTypeForm.name, 
+        amount: feeTypeForm.amount, 
+        type: feeTypeForm.type,
+        dueDay: feeTypeForm.dueDay 
+      } : f));
+    } else {
+      const newFee = {
+        id: `fee-${Date.now()}`,
+        name: feeTypeForm.name,
+        amount: feeTypeForm.amount,
+        type: feeTypeForm.type,
+        grade: 'all' as const,
+        dueDay: feeTypeForm.dueDay,
+      };
+      setFeeStructures([...feeStructures, newFee]);
+    }
+    setIsFeeTypeDialogOpen(false);
+  };
+
+  const deleteFeeType = (id: string) => {
+    setFeeStructures(feeStructures.filter(f => f.id !== id));
   };
 
   // Teacher Assignment handlers
@@ -675,7 +724,7 @@ export function SettingsPage() {
             <Card>
               <div className="data-card-header flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Fee Structures</h3>
-                <Button variant="enterprise" size="sm">Add Fee Type</Button>
+                <Button variant="enterprise" size="sm" onClick={() => openFeeTypeDialog()}><Plus className="w-4 h-4" />Add Fee Type</Button>
               </div>
               <div className="overflow-x-auto">
                 <table className="enterprise-table">
@@ -701,7 +750,16 @@ export function SettingsPage() {
                         <td>{fee.grade === 'all' ? 'All Levels' : fee.grade}</td>
                         <td>{fee.dueDay ? `${fee.dueDay}th` : '-'}</td>
                         <td className="text-right font-mono">{fee.amount.toLocaleString()}</td>
-                        <td><Button variant="ghost" size="xs">Edit</Button></td>
+                        <td>
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="xs" onClick={() => openFeeTypeDialog(fee)}>
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="xs" className="text-destructive" onClick={() => deleteFeeType(fee.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -1138,6 +1196,66 @@ export function SettingsPage() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsTeacherAssignDialogOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Fee Type Dialog */}
+      <Dialog open={isFeeTypeDialogOpen} onOpenChange={setIsFeeTypeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingFeeType ? 'Edit Fee Type' : 'Add Fee Type'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Fee Name *</Label>
+              <Input 
+                value={feeTypeForm.name} 
+                onChange={(e) => setFeeTypeForm({ ...feeTypeForm, name: e.target.value })} 
+                placeholder="e.g., Registration Fee" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Type *</Label>
+              <Select 
+                value={feeTypeForm.type} 
+                onValueChange={(v) => setFeeTypeForm({ ...feeTypeForm, type: v as 'mandatory' | 'monthly' })}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mandatory">Mandatory</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Amount (AED) *</Label>
+              <Input 
+                type="number" 
+                value={feeTypeForm.amount} 
+                onChange={(e) => setFeeTypeForm({ ...feeTypeForm, amount: Number(e.target.value) })} 
+              />
+            </div>
+            {feeTypeForm.type === 'monthly' && (
+              <div className="space-y-2">
+                <Label>Due Day of Month</Label>
+                <Select 
+                  value={feeTypeForm.dueDay?.toString() || ''} 
+                  onValueChange={(v) => setFeeTypeForm({ ...feeTypeForm, dueDay: v ? parseInt(v) : undefined })}
+                >
+                  <SelectTrigger><SelectValue placeholder="Select due day" /></SelectTrigger>
+                  <SelectContent>
+                    {[1, 5, 10, 15, 20, 25].map(d => (
+                      <SelectItem key={d} value={d.toString()}>{d}th of month</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsFeeTypeDialogOpen(false)}>Cancel</Button>
+            <Button variant="enterprise" onClick={saveFeeType} disabled={!feeTypeForm.name || feeTypeForm.amount <= 0}>Save</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
