@@ -96,10 +96,10 @@ export const mockFeeStructures: FeeStructure[] = [
   { id: '1', name: 'Registration Fee', type: 'mandatory', amount: 2500, grade: 'all', description: 'One-time registration fee' },
   { id: '2', name: 'Books & Materials', type: 'mandatory', amount: 1500, grade: 'all', description: 'Annual books and learning materials' },
   { id: '3', name: 'Uniform Fee', type: 'mandatory', amount: 800, grade: 'all', description: 'School uniform package' },
-  { id: '4', name: 'Monthly Tuition - Grade 1-2', type: 'monthly', amount: 3500, grade: 'Grade 1,Grade 2', dueDay: 10 },
-  { id: '5', name: 'Monthly Tuition - Grade 3-4', type: 'monthly', amount: 4000, grade: 'Grade 3,Grade 4', dueDay: 10 },
-  { id: '6', name: 'Monthly Tuition - Grade 5+', type: 'monthly', amount: 4500, grade: 'Grade 5,Grade 6,Grade 7,Grade 8', dueDay: 10 },
-  { id: '7', name: 'Transport Fee', type: 'monthly', amount: 800, grade: 'all', dueDay: 10 },
+  { id: '4', name: 'Monthly Tuition - Grade 1-2', type: 'monthly', amount: 3500, grade: 'Grade 1,Grade 2', levelIds: ['level-4', 'level-5'] },
+  { id: '5', name: 'Monthly Tuition - Grade 3-4', type: 'monthly', amount: 4000, grade: 'Grade 3,Grade 4' },
+  { id: '6', name: 'Monthly Tuition - Grade 5+', type: 'monthly', amount: 4500, grade: 'Grade 5,Grade 6,Grade 7,Grade 8' },
+  { id: '7', name: 'Transport Fee', type: 'monthly', amount: 800, grade: 'all' },
 ];
 
 export const mockPayments: Payment[] = [

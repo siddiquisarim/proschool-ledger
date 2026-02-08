@@ -499,7 +499,7 @@ function FeeProcessor({ student, mandatoryFees, monthlyFee, paidMandatory, paidM
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="font-medium">{monthlyFee?.name || 'Monthly Tuition'}</p>
-                    <p className="text-xs text-muted-foreground">Due on the {monthlyFee?.dueDay || 10}th of each month</p>
+                    <p className="text-xs text-muted-foreground">Due on the 10th of each month</p>
                   </div>
                   <p className="text-xl font-mono font-semibold">AED {monthlyRate.toLocaleString()}</p>
                 </div>
