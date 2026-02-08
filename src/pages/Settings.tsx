@@ -83,7 +83,7 @@ export function SettingsPage() {
   const [areaForm, setAreaForm] = useState({ name: '', fee: 0 });
   const [discountForm, setDiscountForm] = useState({ name: '', description: '', type: 'percentage' as 'percentage' | 'fixed', value: 0, applicableFees: [] as string[] });
   const [extraFeeForm, setExtraFeeForm] = useState({ name: '', amount: 0, description: '' });
-  const [feeTypeForm, setFeeTypeForm] = useState({ name: '', amount: 0, type: 'mandatory' as 'mandatory' | 'monthly', dueDay: undefined as number | undefined });
+  const [feeTypeForm, setFeeTypeForm] = useState({ name: '', amount: 0, type: 'mandatory' as 'mandatory' | 'monthly', levelIds: [] as string[] });
 
   const handleSettingChange = (key: keyof typeof settings, value: string | number) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -267,13 +267,13 @@ export function SettingsPage() {
         name: fee.name, 
         amount: fee.amount, 
         category: fee.type === 'mandatory' ? 'mandatory' : 'monthly', 
-        dueDay: fee.dueDay,
+        levelIds: fee.levelIds || [],
         isActive: true 
       });
-      setFeeTypeForm({ name: fee.name, amount: fee.amount, type: fee.type, dueDay: fee.dueDay });
+      setFeeTypeForm({ name: fee.name, amount: fee.amount, type: fee.type, levelIds: fee.levelIds || [] });
     } else {
       setEditingFeeType(null);
-      setFeeTypeForm({ name: '', amount: 0, type: 'mandatory', dueDay: undefined });
+      setFeeTypeForm({ name: '', amount: 0, type: 'mandatory', levelIds: [] });
     }
     setIsFeeTypeDialogOpen(true);
   };
@@ -285,7 +285,7 @@ export function SettingsPage() {
         name: feeTypeForm.name, 
         amount: feeTypeForm.amount, 
         type: feeTypeForm.type,
-        dueDay: feeTypeForm.dueDay 
+        levelIds: feeTypeForm.levelIds.length > 0 ? feeTypeForm.levelIds : undefined
       } : f));
     } else {
       const newFee = {
@@ -294,7 +294,7 @@ export function SettingsPage() {
         amount: feeTypeForm.amount,
         type: feeTypeForm.type,
         grade: 'all' as const,
-        dueDay: feeTypeForm.dueDay,
+        levelIds: feeTypeForm.levelIds.length > 0 ? feeTypeForm.levelIds : undefined,
       };
       setFeeStructures([...feeStructures, newFee]);
     }
@@ -733,7 +733,6 @@ export function SettingsPage() {
                       <th>Fee Name</th>
                       <th>Category</th>
                       <th>Applicable Levels</th>
-                      <th>Due Day</th>
                       <th className="text-right">Amount (AED)</th>
                       <th>Actions</th>
                     </tr>
@@ -747,8 +746,11 @@ export function SettingsPage() {
                             {fee.type}
                           </span>
                         </td>
-                        <td>{fee.grade === 'all' ? 'All Levels' : fee.grade}</td>
-                        <td>{fee.dueDay ? `${fee.dueDay}th` : '-'}</td>
+                        <td>
+                          {fee.levelIds && fee.levelIds.length > 0 
+                            ? fee.levelIds.map(id => levels.find(l => l.id === id)?.name).filter(Boolean).join(', ')
+                            : 'All Levels'}
+                        </td>
                         <td className="text-right font-mono">{fee.amount.toLocaleString()}</td>
                         <td>
                           <div className="flex items-center gap-1">
@@ -1236,22 +1238,29 @@ export function SettingsPage() {
                 onChange={(e) => setFeeTypeForm({ ...feeTypeForm, amount: Number(e.target.value) })} 
               />
             </div>
-            {feeTypeForm.type === 'monthly' && (
-              <div className="space-y-2">
-                <Label>Due Day of Month</Label>
-                <Select 
-                  value={feeTypeForm.dueDay?.toString() || ''} 
-                  onValueChange={(v) => setFeeTypeForm({ ...feeTypeForm, dueDay: v ? parseInt(v) : undefined })}
-                >
-                  <SelectTrigger><SelectValue placeholder="Select due day" /></SelectTrigger>
-                  <SelectContent>
-                    {[1, 5, 10, 15, 20, 25].map(d => (
-                      <SelectItem key={d} value={d.toString()}>{d}th of month</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <div className="space-y-2">
+              <Label>Applicable Levels</Label>
+              <p className="text-xs text-muted-foreground mb-2">Leave empty to apply to all levels</p>
+              <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto p-2 border rounded">
+                {levels.map(level => (
+                  <label key={level.id} className="flex items-center gap-2 cursor-pointer p-2 rounded hover:bg-muted/50">
+                    <input
+                      type="checkbox"
+                      checked={feeTypeForm.levelIds.includes(level.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFeeTypeForm({ ...feeTypeForm, levelIds: [...feeTypeForm.levelIds, level.id] });
+                        } else {
+                          setFeeTypeForm({ ...feeTypeForm, levelIds: feeTypeForm.levelIds.filter(id => id !== level.id) });
+                        }
+                      }}
+                      className="rounded border-border"
+                    />
+                    <span className="text-sm">{level.name}</span>
+                  </label>
+                ))}
               </div>
-            )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsFeeTypeDialogOpen(false)}>Cancel</Button>

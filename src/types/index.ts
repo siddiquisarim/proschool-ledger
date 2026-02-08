@@ -44,7 +44,7 @@ export interface FeeStructure {
   type: 'mandatory' | 'monthly';
   amount: number;
   grade: string;
-  dueDay?: number;
+  levelIds?: string[];
   description?: string;
 }
 
